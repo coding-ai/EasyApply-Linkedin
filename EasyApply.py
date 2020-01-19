@@ -3,23 +3,30 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
-import time
-from selenium.webdriver.common.action_chains import ActionChains
-import re
 from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException
+from selenium.webdriver.common.action_chains import ActionChains
+import time
+import re
+import json
 
 class EasyApplyLinkedin:
 
-    def __init__(self, email, password, keywords, location, driver_path):
+    def __init__(self, data):
+        """Parameter initialization"""
 
-        self.email = email
-        self.password = password
-        self.keywords = keywords
-        self.location = location
-        self.driver = webdriver.Chrome(driver_path)
+        self.email = data['email']
+        self.password = data['password']
+        self.keywords = data['keywords']
+        self.location = data['location']
+        self.driver = webdriver.Chrome(data['driver_path'])
 
     def login_linkedin(self):
+        """This function logs into your personal LinkedIn profile"""
+
+        # go to the LinkedIn login url
         self.driver.get("https://www.linkedin.com/login")
+
+        # introduce email and password and hit enter
         login_email = self.driver.find_element_by_name('session_key')
         login_email.clear()
         login_email.send_keys(self.email)
@@ -29,8 +36,13 @@ class EasyApplyLinkedin:
         login_pass.send_keys(Keys.RETURN)
     
     def job_search(self):
+        """This function goes to the 'Jobs' section a looks for all the jobs that matches the keywords and location"""
+
+        # go to Jobs
         jobs_link = self.driver.find_element_by_link_text('Jobs')
         jobs_link.click()
+
+        # search based on keywords and location and hit enter
         search_keywords = self.driver.find_element_by_css_selector(".jobs-search-box__text-input[aria-label='Search jobs']")
         search_keywords.clear()
         search_keywords.send_keys(self.keywords)
@@ -40,6 +52,9 @@ class EasyApplyLinkedin:
         search_location.send_keys(Keys.RETURN)
 
     def filter(self):
+        """This function filters all the job results by 'Easy Apply'"""
+
+        # select all filters, click on Easy Apply and apply the filter
         all_filters_button = self.driver.find_element_by_xpath("//button[@data-control-name='all_filters']")
         all_filters_button.click()
         time.sleep(1)
@@ -50,19 +65,27 @@ class EasyApplyLinkedin:
         apply_filter_button.click()
 
     def find_offers(self):
+        """This function finds all the offers through all the pages result of the search and filter"""
+
+        # find the total amount of results (if the results are above 24-more than one page-, we will scroll trhough all available pages)
         total_results = self.driver.find_element_by_class_name("display-flex.t-12.t-black--light.t-normal")
         total_results_int = int(total_results.text.split(' ',1)[0].replace(",",""))
         print(total_results_int)
 
         time.sleep(2)
+        # get results for the first page
         current_page = self.driver.current_url
         results = self.driver.find_elements_by_class_name("occludable-update.artdeco-list__item--offset-4.artdeco-list__item.p0.ember-view")
+
+        # for each job add, submits application if no questions asked
         for result in results:
             hover = ActionChains(self.driver).move_to_element(result)
             hover.perform()
             titles = result.find_elements_by_class_name('job-card-search__title.artdeco-entity-lockup__title.ember-view')
             for title in titles:
                 self.submit_apply(title)
+
+        # if there is more than one page, find the pages and apply to the results of each page
         if total_results_int > 24:
             time.sleep(2)
             find_pages = self.driver.find_elements_by_class_name("artdeco-pagination__indicator.artdeco-pagination__indicator--number")
@@ -77,17 +100,19 @@ class EasyApplyLinkedin:
             for page_number in range(25,total_jobs+25,25):
                 self.driver.get(current_page+'&start='+str(page_number))
                 time.sleep(2)
-                results2 = self.driver.find_elements_by_class_name("occludable-update.artdeco-list__item--offset-4.artdeco-list__item.p0.ember-view")
-                for result2 in results2:
-                    hover2 = ActionChains(self.driver).move_to_element(result2)
-                    hover2.perform()
-                    titles2 = result2.find_elements_by_class_name('job-card-search__title.artdeco-entity-lockup__title.ember-view')
-                    for title2 in titles2:
-                        self.submit_apply(title2)
+                results_ext = self.driver.find_elements_by_class_name("occludable-update.artdeco-list__item--offset-4.artdeco-list__item.p0.ember-view")
+                for result_ext in results_ext:
+                    hover_ext = ActionChains(self.driver).move_to_element(result_ext)
+                    hover_ext.perform()
+                    titles_ext = result_ext.find_elements_by_class_name('job-card-search__title.artdeco-entity-lockup__title.ember-view')
+                    for title_ext in titles_ext:
+                        self.submit_apply(title_ext)
         else:
             self.close_session()
 
     def submit_apply(self,job_add):
+        """This function submits the application for the job add found"""
+
         print('You are applying to the position of: ', job_add.text)
         job_add.click()
         time.sleep(2)
@@ -109,27 +134,30 @@ class EasyApplyLinkedin:
         time.sleep(1)
 
     def close_session(self):
+        """This function closes the actual session"""
+        
         print('End of the session, see you later!')
         self.driver.close()
 
     def apply(self):
+        """Apply to job offers"""
+
         self.driver.maximize_window()
         self.login_linkedin()
-        time.sleep(5)
+        time.sleep(2)
         self.job_search()
-        time.sleep(5)
+        time.sleep(2)
         self.filter()
         time.sleep(2)
         self.find_offers()
+        time.sleep(2)
+        self.close_session()
 
 
 if __name__ == '__main__':
 
-    email = ''
-    password = ''
-    keywords = ''
-    location = ''
-    driver_path = ''
+    with open('config.json') as config_file:
+        data = json.load(config_file)
 
-    bot = EasyApplyLinkedin(email,password,keywords,location,driver_path)
+    bot = EasyApplyLinkedin(data)
     bot.apply()
