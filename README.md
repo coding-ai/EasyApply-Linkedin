@@ -28,4 +28,4 @@ Fork and clone/download the repository and change the configuration file with:
 
 Run `python main.py`.
 
-Please feel free to comment or give suggestions/issues either here or through my [Instagram](https://www.instagram.com/ai.coding/). 
+Please feel free to comment or give suggestions/issues.
