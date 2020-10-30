@@ -42,14 +42,22 @@ class EasyApplyLinkedin:
         jobs_link = self.driver.find_element_by_link_text('Jobs')
         jobs_link.click()
 
+        # wait until its fully load
+        time.sleep(5)
+
         # search based on keywords and location and hit enter
-        search_keywords = self.driver.find_element_by_css_selector(".jobs-search-box__text-input[aria-label='Search jobs']")
-        search_keywords.clear()
-        search_keywords.send_keys(self.keywords)
-        search_location = self.driver.find_element_by_css_selector(".jobs-search-box__text-input[aria-label='Search location']")
-        search_location.clear()
-        search_location.send_keys(self.location)
-        search_location.send_keys(Keys.RETURN)
+        search_keywords = self.driver.find_elements_by_css_selector(
+            ".jobs-search-box__text-input")
+
+        # job keyword
+        search_keywords[0].clear()
+        search_keywords[0].send_keys(self.keywords)
+
+        # job location
+        search_keywords[2].clear()
+        search_keywords[2].send_keys(self.location)
+        search_keywords[2].send_keys(Keys.RETURN)
+
 
     def filter(self):
         """This function filters all the job results by 'Easy Apply'"""
@@ -58,10 +66,12 @@ class EasyApplyLinkedin:
         all_filters_button = self.driver.find_element_by_xpath("//button[@data-control-name='all_filters']")
         all_filters_button.click()
         time.sleep(1)
-        easy_apply_button = self.driver.find_element_by_xpath("//label[@for='f_LF-f_AL']")
+        easy_apply_button = self.driver.find_element_by_xpath("//label[@for='linkedinFeatures-f_AL']")
         easy_apply_button.click()
         time.sleep(1)
-        apply_filter_button = self.driver.find_element_by_xpath("//button[@data-control-name='all_filters_apply']")
+        apply_filter_button = self.driver.find_element_by_xpath(
+            "//button[@class='search-advanced-facets__button--apply ml4 mr2 artdeco-button artdeco-button--3 "
+            "artdeco-button--primary ember-view']")
         apply_filter_button.click()
 
     def find_offers(self):
@@ -165,9 +175,9 @@ class EasyApplyLinkedin:
         time.sleep(5)
         self.filter()
         time.sleep(2)
-        self.find_offers()
-        time.sleep(2)
-        self.close_session()
+        #self.find_offers()
+        #time.sleep(2)
+        #self.close_session()
 
 
 if __name__ == '__main__':
