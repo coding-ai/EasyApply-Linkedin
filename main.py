@@ -175,9 +175,9 @@ class EasyApplyLinkedin:
         time.sleep(5)
         self.filter()
         time.sleep(2)
-        #self.find_offers()
-        #time.sleep(2)
-        #self.close_session()
+        # self.find_offers()
+        # time.sleep(2)
+        self.close_session()
 
 
 if __name__ == '__main__':
