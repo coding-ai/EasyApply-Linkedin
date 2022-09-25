@@ -1,0 +1,12 @@
+
+*.exe
+
+.idea/
+
+config.json
+
+debug.log
+
+test.py
+
+.vscode
