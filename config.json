@@ -1,7 +1,7 @@
 {
-    "email" : "your_email",
-    "password" : "your_password",
-    "keywords" : "your_keywords",
-    "location" : "your_location",
-    "driver_path" : "your_path_to_webdriver"
+    "email" : "j.e.montrose@gmail.com",
+    "password" : "R0015mydaddy!!!",
+    "keywords" : "entry level software engineer",
+    "location" : "Remote",
+    "driver_path" : "/Users/montrose/Documents/GitHub/javascript/EasyApply-Linkedin/driver/chromedriver"
 }
