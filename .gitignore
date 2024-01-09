@@ -1,0 +1,12 @@
+/venv/
+/.idea
+**/__pycache__/
+**/.pytest_cache/
+/.ipynb_checkpoints/
+**/output/
+**/.DS_Store
+*.pyc
+.env
+dist
+data
+data/*
