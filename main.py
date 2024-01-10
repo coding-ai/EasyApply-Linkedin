@@ -18,7 +18,7 @@ from selenium.webdriver.common.keys import Keys
 
 class SearchLinkedin:
 
-    def __init__(self, keywords, location, driver_path=None):
+    def __init__(self, keywords, location, time_str, driver_path=None):
         """
         Initialize a SearchLinkedin
         :param keywords: job title
@@ -27,11 +27,11 @@ class SearchLinkedin:
         """
         self.keywords = keywords
         self.location = location
+        self.time_str = time_str
 
         self.email = None
         self.password = None
         # use a time string to name output files and log files
-        self.time_str = datetime.now().strftime("%Y%m%dH%H")
         self.driver_path = driver_path
         self.driver = None
 
@@ -39,11 +39,6 @@ class SearchLinkedin:
     def out_file(self):
         """ Output data file """
         return path.join('data', self.time_str + f'_all_{self.job_type}.csv')
-
-    @property
-    def log_file(self):
-        """ log file """
-        return path.join('data', self.time_str + '.log')
 
     @property
     def job_type(self):
@@ -283,11 +278,10 @@ class SearchLinkedin:
         """This function closes the actual session"""
         logging.info('Close this session!')
         self.driver.close()
+        time.sleep(1)
 
     def run(self):
         """ Search jobs and save results """
-        # configure a log file
-        config_log(self.log_file)
         logging.info("Start...")
         self.init_webdriver()
         self.login_linkedin()
@@ -295,10 +289,8 @@ class SearchLinkedin:
         self.filter()
         self.find_jobs()
         self.close_session()
-
         # select GeO and computer vision - AI jobs
         select_interesting_jobs(self.out_file)
-
         logging.info("All done!")
 
 
@@ -434,14 +426,18 @@ def is_cv_job(description):
 
 
 if __name__ == '__main__':
+    # configure a log file
+    time_str = datetime.now().strftime("%Y%m%dH%H")
+    config_log(path.join('data', time_str + '.log'))
+
     # search MLE jobs in the US. Default filter is "Past 24 hours".
     keywords = "Senior Data Scientist"
     location = "United States"
-    bot = SearchLinkedin(keywords, location)
+    bot = SearchLinkedin(keywords, location, time_str)
     bot.run()
 
     # search MLE jobs in the US. Default filter is "Past 24 hours".
     keywords = "Machine Learning Engineer"
     location = "United States"
-    bot = SearchLinkedin(keywords, location)
+    bot = SearchLinkedin(keywords, location, time_str)
     bot.run()
