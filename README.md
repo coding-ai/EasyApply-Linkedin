@@ -24,10 +24,9 @@ Click [here](https://selenium-python.readthedocs.io/locating-elements.html) to c
 
 Fork and clone/download the repository and change the configuration file with:
 
-* Your email linked to LinkedIn.
-* Your password.
-* Keywords for finding specific job titles fx. Machine Learning Engineer, Data Scientist, etc.
-* The location where you are currently looking for a position.
+* Create a json file "data/config.json" and write your LinkedIn login information:
+  {"email": "<linkedin_account>", "password": "<password>"}
+* Modify the keywords and location etc.
 * The driver path to your downloaded webdriver.
 
 Run `python main.py`.

@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 import json
-import os
+import logging
+import re
 import time
 from collections import OrderedDict, deque
 from datetime import datetime
 from os import path, makedirs
 from random import randint
-import logging
 
+import numpy as np
 import pandas as pd
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -17,30 +18,63 @@ from selenium.webdriver.common.keys import Keys
 
 class SearchLinkedin:
 
-    def __init__(self, config, time_str):
-        """Parameter initialization"""
-        self.email = config['email']
-        self.password = config['password']
-        self.keywords = config['keywords']
-        self.location = config['location']
-        self.driver_path = config["driver_path"]
+    def __init__(self, keywords, location, driver_path=None):
+        """
+        Initialize a SearchLinkedin
+        :param keywords: job title
+        :param location:
+        :param driver_path: web driver path. No need to specify the driver_path if it is added to the system env.
+        """
+        self.keywords = keywords
+        self.location = location
 
-        self.time_str = time_str  # use to name output files
+        self.email = None
+        self.password = None
+        # use a time string to name output files and log files
+        self.time_str = datetime.now().strftime("%Y%m%dH%H")
+        self.driver_path = driver_path
         self.driver = None
+
+    @property
+    def out_file(self):
+        """ Output data file """
+        return path.join('data', self.time_str + f'_all_{self.job_type}.csv')
+
+    @property
+    def log_file(self):
+        """ log file """
+        return path.join('data', self.time_str + '.log')
+
+    @property
+    def job_type(self):
+        """ first letter of each keywords"""
+        return ''.join([word[0].lower() for word in self.keywords.split(' ')])
 
     def init_webdriver(self):
         """
         Initialize a Chrome webdriver.
         """
         logging.info(f"Initialize a Chrome driver.")
-        self.driver = webdriver.Chrome(self.driver_path)
+        if self.driver_path:
+            self.driver = webdriver.Chrome(self.driver_path)
+        else:
+            self.driver = webdriver.Chrome()
         self.driver.implicitly_wait(10)  # seconds
         time.sleep(0.5)
         self.driver.maximize_window()
         time.sleep(0.5)
 
+    def get_credentials(self):
+        """ Load login account and password from a local file """
+        logging.info(f"Load a configuration file for job search.")
+        with open('data/config.json', 'r') as config_file:
+            data = json.load(config_file)
+        self.email = data['email']
+        self.password = data['password']
+
     def login_linkedin(self):
         """This function logs into your personal LinkedIn profile"""
+        self.get_credentials()
 
         logging.info(f"Go to the LinkedIn login url: https://www.linkedin.com/login.")
         self.driver.get("https://www.linkedin.com/login")
@@ -204,16 +238,9 @@ class SearchLinkedin:
                 logging.error(str(e))
         return data
 
-    @property
-    def out_file(self):
-        """ Output data file """
-        return path.join('data', self.time_str + '_all.csv')
-
     def find_jobs(self):
         """ Find all jobs and save the jobs to a table file"""
         # Collect all jobs for each page
-        if path.exists(self.out_file):
-            os.remove(self.out_file)
 
         page_num = 1
         while True:
@@ -259,12 +286,20 @@ class SearchLinkedin:
 
     def run(self):
         """ Search jobs and save results """
+        # configure a log file
+        config_log(self.log_file)
+        logging.info("Start...")
         self.init_webdriver()
         self.login_linkedin()
         self.job_search()
         self.filter()
         self.find_jobs()
         self.close_session()
+
+        # select GeO and computer vision - AI jobs
+        select_interesting_jobs(self.out_file)
+
+        logging.info("All done!")
 
 
 def config_log(log_file, level=logging.INFO) -> None:
@@ -294,9 +329,9 @@ def config_log(log_file, level=logging.INFO) -> None:
     logging.getLogger('').addHandler(console)
 
 
-def find_interested_jobs():
+def select_interesting_jobs(in_file):
     """
-    Check if a job is a Geo AI job. Example:
+    Select interesting jobs.
     The description contains
     (1) any of ['remote sensing', 'satellite', 'earth', 'climate']
     (2) any of ['deep learning', 'pytorch', 'tensorflow']
@@ -304,19 +339,109 @@ def find_interested_jobs():
     :return:
     """
     # title, location, company, description
-    pass
+    df = pd.read_csv(in_file)
+    logging.info(f"The total number of job entries: {df.shape[0]}")
+    # 'Link', 'Title', 'Company', 'Location', 'Description'
+    geoai_inds = []
+    cvai_inds = []
+
+    for i in range(df.shape[0]):
+        row = df.iloc[i]
+        link, title, company, location = row['Link'], row['Title'], row['Company'], row['Location']
+        logging.info(f"{i+1}/{df.shape[0]}, {link}, {title}, {company}, {location}")
+
+        description = set(re.split(r'[,\s;:.*]+', row['Description'].lower()))
+        if is_intern_job(row):
+            continue
+        is_ai = is_ai_job(description)
+        is_geo = is_geo_job(description)
+        is_cv = is_cv_job(description)
+
+        if is_ai and is_geo:
+            geoai_inds.append(i)
+        if is_ai and is_cv:
+            cvai_inds.append(i)
+
+    logging.info(f"Number of GeoAI jobs: {len(geoai_inds)}")
+    logging.info(f"Number of computer vision AI jobs: {len(cvai_inds)}")
+    if len(geoai_inds):
+        out_file = in_file.strip('.csv') + '_geoai.csv'
+        df.loc[geoai_inds].to_csv(out_file, index=True)
+    if len(cvai_inds):
+        out_file = in_file.strip('.csv') + '_cvai.csv'
+        df.loc[cvai_inds].to_csv(out_file, index=True)
+    logging.info("Done!")
+
+
+def is_intern_job(row):
+    """ Is a job an intern job? """
+    return True if 'intern' in row['Title'] else False
+
+
+def words_exist(word_list, words_set):
+    """
+    Check if all words exist in the words_set
+    :param word_list: a list of words
+    :param words_set: a set of words
+    :return:
+    """
+    res = []
+    for word in word_list:
+        if word in words_set:
+            res.append(True)
+        else:
+            res.append(False)
+    return np.all(res)
+
+
+def is_geo_job(description):
+    """
+    Is it a Geo job?
+    :param description: word set of a job description
+    :return:
+    """
+    geo_keywords = [['remote', 'sensing'], ['satellite'], ['earth', 'observation'], ['climate', 'change']]
+    for word_list in geo_keywords:
+        if words_exist(word_list, description):
+            return True
+    return False
+
+
+def is_ai_job(description):
+    """
+    Is it an AI job?
+    :param description: word set of a job description
+    :return:
+    """
+    ai_keywords = [['deep', 'learning'], ['pytorch'], ['tensorflow']]
+    for word_list in ai_keywords:
+        if words_exist(word_list, description):
+            return True
+    return False
+
+
+def is_cv_job(description):
+    """
+    Is it a computer vision job?
+    :param description: word set of a job description
+    :return:
+    """
+    ai_keywords = [['computer', 'vision']]
+    for word_list in ai_keywords:
+        if words_exist(word_list, description):
+            return True
+    return False
 
 
 if __name__ == '__main__':
-
-    # configure a log file
-    time_str = current_datetime = datetime.now().strftime("%Y-%m-%d-%H-%M")  # use to name output files
-    config_log(path.join('data', 'logs', time_str + '.log'))
-
-    logging.info(f"Load a configuration file for job search.")
-    with open('data/config.json') as config_file:
-        config = json.load(config_file)
-
-    bot = SearchLinkedin(config, time_str)
+    # search MLE jobs in the US. Default filter is "Past 24 hours".
+    keywords = "Senior Data Scientist"
+    location = "United States"
+    bot = SearchLinkedin(keywords, location)
     bot.run()
-    logging.info("All done!")
+
+    # search MLE jobs in the US. Default filter is "Past 24 hours".
+    keywords = "Machine Learning Engineer"
+    location = "United States"
+    bot = SearchLinkedin(keywords, location)
+    bot.run()
