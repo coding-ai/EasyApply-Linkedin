@@ -1,6 +1,6 @@
-# EasyApply-Linkedin
+# Automate job search - Linkedin
 
-With this tool you can easily automate the process of applying for jobs on LinkedIn!
+With this tool you can easily automate the process of searching for jobs on LinkedIn!
 
 ## Getting started
 
@@ -8,9 +8,11 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-1. Install selenium. I used `pip` to install the selenium package.
+1. Install selenium and beautifulsoup4. I used `anaconda` to install these packages.
 
-`pip install selenium`
+`conda create -n <env_name> python=3.11`
+`conda install conda-forge::selenium`
+`conda install anaconda::beautifulsoup4`
 
 2. Selenium requires a driver to interface with the chosen browser. Make sure the driver is in your path, you will need to add your `driver_path` to the `config.json` file.
 

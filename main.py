@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import json
+import os
 import time
 from collections import OrderedDict, deque
 from datetime import datetime
@@ -16,7 +17,7 @@ from selenium.webdriver.common.keys import Keys
 
 class SearchLinkedin:
 
-    def __init__(self, config):
+    def __init__(self, config, time_str):
         """Parameter initialization"""
         self.email = config['email']
         self.password = config['password']
@@ -24,8 +25,8 @@ class SearchLinkedin:
         self.location = config['location']
         self.driver_path = config["driver_path"]
 
+        self.time_str = time_str  # use to name output files
         self.driver = None
-        self.job_data = {'Link': [], 'Title': [], 'Company': [], 'Location': [], 'Description': []}
 
     def init_webdriver(self):
         """
@@ -176,9 +177,9 @@ class SearchLinkedin:
         for i, (link, job_element) in enumerate(job_links.items()):
             logging.info(f"Scrape link {i+1} / {len(job_links)}: {link}")
             job_element.click()
-            time.sleep(randint(2, 5))
+            time.sleep(randint(1, 3))
             soup = BeautifulSoup(self.driver.page_source, 'html.parser')
-            time.sleep(randint(2, 5))
+            time.sleep(randint(1, 2) * 0.5)
 
             try:
                 job_title = soup.find('span',{'class': 'job-details-jobs-unified-top-card__job-title-link'}).get_text(strip=True).strip()
@@ -203,60 +204,66 @@ class SearchLinkedin:
                 logging.error(str(e))
         return data
 
+    @property
+    def out_file(self):
+        """ Output data file """
+        return path.join('data', self.time_str + '_all.csv')
+
     def find_jobs(self):
-        """This function finds all the jobs through all the pages result of the search and filter"""
+        """ Find all jobs and save the jobs to a table file"""
         # Collect all jobs for each page
+        if path.exists(self.out_file):
+            os.remove(self.out_file)
+
         page_num = 1
         while True:
             logging.info(f"Processing page {page_num}")
             try:
                 page_button = self.driver.find_element(By.XPATH, f'//button[@aria-label="Page {page_num}"]')
             except Exception as e:
-                logging.error(str(e))
-                time.sleep(randint(3, 6))
+                logging.info("Unable to locate element - Page 17.")
+                time.sleep(randint(1, 2))
                 break
             page_button.click()
             time.sleep(randint(3, 6))
 
-            # logging.info("Find all job links on the current page.")
-            # job_links = self.find_page_jobs()
-            #
-            # logging.info("Extract job title, company, location and description.")
-            # data = self.extract_data(job_links)
-            # self.job_data['Link'].extend(data['Link'])
-            # self.job_data['Title'].extend(data['Title'])
-            # self.job_data['Company'].extend(data['Company'])
-            # self.job_data['Location'].extend(data['Location'])
-            # self.job_data['Description'].extend(data['Description'])
+            logging.info(f"Find all job links on Page {page_num}.")
+            job_links = self.find_page_jobs()
+
+            logging.info("Extract job title, company, location and description.")
+            data = self.extract_data(job_links)
+            self.save_results(data)
 
             page_num += 1
-            if page_num > 2:
-                logging.info(f"Finished {page_num} job pages. Exit.")
+            if page_num > 30:
+                logging.info(f"Exit as Finished {page_num} job pages. .")
                 break
 
-    def save_results(self):
+    def save_results(self, data):
         """
         Find interested jobs from job data and save it to a local csv file
         :return:
         """
-        job_df = pd.DataFrame(self.job_data)
-        out_file = path.join('data', datetime.today().date().strftime('%Y-%m-%d') + '_all.csv')
-        logging.info(f"Save all jobs to {out_file}")
-        job_df.to_csv(out_file, index=True)
+        df = pd.DataFrame(data)
+        if not path.exists(self.out_file):
+            logging.info(f"Save all jobs on this page to {self.out_file}")
+            df.to_csv(self.out_file, index=True)
+        else:
+            logging.info(f"Append all jobs on this page to {self.out_file}")
+            df.to_csv(self.out_file, mode='a', index=True, header=False)
 
     def close_session(self):
         """This function closes the actual session"""
-        logging.info('End of the session, see you later!')
+        logging.info('Close this session!')
         self.driver.close()
 
     def run(self):
-        """Apply to job offers"""
+        """ Search jobs and save results """
         self.init_webdriver()
         self.login_linkedin()
         self.job_search()
         self.filter()
         self.find_jobs()
-        self.save_results()
         self.close_session()
 
 
@@ -287,27 +294,29 @@ def config_log(log_file, level=logging.INFO) -> None:
     logging.getLogger('').addHandler(console)
 
 
-def is_geoai_job(description):
+def find_interested_jobs():
     """
-    Check if a job is a Geo AI job
+    Check if a job is a Geo AI job. Example:
     The description contains
     (1) any of ['remote sensing', 'satellite', 'earth', 'climate']
     (2) any of ['deep learning', 'pytorch', 'tensorflow']
-    :param description:
+    (3) 'intern' not in title;
     :return:
     """
-    return True
+    # title, location, company, description
+    pass
 
 
 if __name__ == '__main__':
 
     # configure a log file
-    config_log(path.join('data', 'logs', datetime.today().date().strftime('%Y-%m-%d') + '.log'))
+    time_str = current_datetime = datetime.now().strftime("%Y-%m-%d-%H-%M")  # use to name output files
+    config_log(path.join('data', 'logs', time_str + '.log'))
 
     logging.info(f"Load a configuration file for job search.")
     with open('data/config.json') as config_file:
         config = json.load(config_file)
 
-    bot = SearchLinkedin(config)
+    bot = SearchLinkedin(config, time_str)
     bot.run()
     logging.info("All done!")
