@@ -172,13 +172,19 @@ class SearchLinkedin:
             time.sleep(randint(2, 5))
 
             try:
-                job_title = soup.find('span',{'class': 'job-details-jobs-unified-top-card__job-title-link'}).get_text().strip()
+                job_title = soup.find('span',{'class': 'job-details-jobs-unified-top-card__job-title-link'}).get_text(strip=True).strip()
                 details = soup.find('div',{'class': 'job-details-jobs-unified-top-card__primary-description-without-tagline'}).get_text().strip()
                 company_name, location = details.split('·')[:2]
 
                 job_desc = soup.find('div', class_='jobs-description-content__text')
-                description = job_desc.get_text(
-                    strip=True) if job_desc else "Job description not found."
+                if job_desc:
+                    description = job_desc.get_text(strip=True)
+                    n_chars = len("About the job")
+                    if len(description) > n_chars and description[:n_chars] == "About the job":
+                        description = description[n_chars:]
+                else:
+                    description = "Job description not found."
+
                 data['Link'].append(link)
                 data['Title'].append(job_title)
                 data['Company'].append(company_name)
@@ -215,7 +221,7 @@ class SearchLinkedin:
             self.job_data['Description'].extend(data['Description'])
 
             page_num += 1
-            if page_num > 50:
+            if page_num > 30:
                 print(f"Finished {page_num} job pages. Exit.")
                 break
 
@@ -224,17 +230,13 @@ class SearchLinkedin:
         Find interested jobs from job data and save it to a local csv file
         :return:
         """
-        job_df = pd.DataFrame([self.job_data])
+        job_df = pd.DataFrame(self.job_data)
         out_file = path.join('data', datetime.today().date().strftime('%Y-%m-%d') + '_all.csv')
         print(f"Save all jobs to {out_file}")
         job_df.to_csv(out_file, index=True)
 
-        # select the
-        pass
-
     def close_session(self):
         """This function closes the actual session"""
-        
         print('End of the session, see you later!')
         self.driver.close()
 
@@ -246,6 +248,7 @@ class SearchLinkedin:
         self.job_search()
         self.filter()
         self.find_jobs()
+        self.save_results()
         self.close_session()
 
 
