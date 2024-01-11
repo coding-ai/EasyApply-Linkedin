@@ -357,10 +357,10 @@ def select_interesting_jobs(in_file):
     logging.info(f"Number of GeoAI jobs: {len(geoai_inds)}")
     logging.info(f"Number of computer vision AI jobs: {len(cvai_inds)}")
     if len(geoai_inds):
-        out_file = in_file.strip('.csv') + '_geoai.csv'
+        out_file = in_file.replace('.csv', '') + '_geoai.csv'
         df.loc[geoai_inds].to_csv(out_file, index=True)
     if len(cvai_inds):
-        out_file = in_file.strip('.csv') + '_cvai.csv'
+        out_file = in_file.replace('.csv', '') + '_cvai.csv'
         df.loc[cvai_inds].to_csv(out_file, index=True)
     logging.info("Done!")
 
