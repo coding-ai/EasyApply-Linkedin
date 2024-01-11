@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 import json
 import logging
-import re
 import time
 from collections import OrderedDict, deque
 from datetime import datetime
 from os import path, makedirs
 from random import randint
 
-import numpy as np
 import pandas as pd
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -22,7 +20,8 @@ class SearchLinkedin:
         """
         Initialize a SearchLinkedin
         :param keywords: job title
-        :param location:
+        :param location: job location
+        :param time_str: use a time string to name output files and log files
         :param driver_path: web driver path. No need to specify the driver_path if it is added to the system env.
         """
         self.keywords = keywords
@@ -31,7 +30,6 @@ class SearchLinkedin:
 
         self.email = None
         self.password = None
-        # use a time string to name output files and log files
         self.driver_path = driver_path
         self.driver = None
 
@@ -132,7 +130,7 @@ class SearchLinkedin:
         tries = 1
         while tries < 10:
             try:
-                date_posted_button = self.driver.find_element(By.XPATH,'//button[starts-with(@aria-label, "Date posted filter.")][@type="button"]')
+                date_posted_button = self.driver.find_element(By.XPATH, '//button[starts-with(@aria-label, "Date posted filter.")][@type="button"]')
                 date_posted_button.click()
                 time.sleep(randint(2, 5))
 
@@ -140,7 +138,7 @@ class SearchLinkedin:
                 past24h_radiobutton.click()
                 time.sleep(randint(2, 5))
 
-                show_results_button = self.driver.find_element(By.XPATH,"//span[contains(normalize-space(), 'Show') and contains(normalize-space(), 'results')]")
+                show_results_button = self.driver.find_element(By.XPATH, "//span[contains(normalize-space(), 'Show') and contains(normalize-space(), 'results')]")
                 show_results_button.click()
                 time.sleep(randint(4, 8))
                 logging.info("Job filtering is done!")
@@ -211,7 +209,7 @@ class SearchLinkedin:
             time.sleep(randint(1, 2) * 0.5)
 
             try:
-                job_title = soup.find('span',{'class': 'job-details-jobs-unified-top-card__job-title-link'}).get_text(strip=True).strip()
+                job_title = soup.find('span', {'class': 'job-details-jobs-unified-top-card__job-title-link'}).get_text(strip=True).strip()
                 details = soup.find('div',{'class': 'job-details-jobs-unified-top-card__primary-description-without-tagline'}).get_text().strip()
                 company_name, location = details.split('·')[:2]
 
@@ -342,8 +340,9 @@ def select_interesting_jobs(in_file):
         link, title, company, location = row['Link'], row['Title'], row['Company'], row['Location']
         logging.info(f"{i+1}/{df.shape[0]}, {link}, {title}, {company}, {location}")
 
-        description = set(re.split(r'[,\s;:.*]+', row['Description'].lower()))
-        if is_intern_job(row):
+        # description = set(re.split(r'[,\s;:.*]+', row['Description'].lower()))
+        description = row['Description'].lower()
+        if is_intern_job(row['Title'].lower()):
             continue
         is_ai = is_ai_job(description)
         is_geo = is_geo_job(description)
@@ -365,36 +364,20 @@ def select_interesting_jobs(in_file):
     logging.info("Done!")
 
 
-def is_intern_job(row):
+def is_intern_job(title):
     """ Is a job an intern job? """
-    return True if 'intern' in row['Title'] else False
-
-
-def words_exist(word_list, words_set):
-    """
-    Check if all words exist in the words_set
-    :param word_list: a list of words
-    :param words_set: a set of words
-    :return:
-    """
-    res = []
-    for word in word_list:
-        if word in words_set:
-            res.append(True)
-        else:
-            res.append(False)
-    return np.all(res)
+    return True if 'intern' in title else False
 
 
 def is_geo_job(description):
     """
     Is it a Geo job?
-    :param description: word set of a job description
+    :param description: lowercase string description
     :return:
     """
-    geo_keywords = [['remote', 'sensing'], ['satellite'], ['earth', 'observation'], ['climate', 'change']]
-    for word_list in geo_keywords:
-        if words_exist(word_list, description):
+    geo_keywords = ['remote sensing', 'satellite', 'earth observation', 'climate change']
+    for keywords in geo_keywords:
+        if keywords in description:
             return True
     return False
 
@@ -402,12 +385,12 @@ def is_geo_job(description):
 def is_ai_job(description):
     """
     Is it an AI job?
-    :param description: word set of a job description
+    :param description: lowercase string description
     :return:
     """
-    ai_keywords = [['deep', 'learning'], ['pytorch'], ['tensorflow']]
-    for word_list in ai_keywords:
-        if words_exist(word_list, description):
+    ai_keywords = ['deep learning', 'pytorch', 'tensorflow']
+    for keywords in ai_keywords:
+        if keywords in description:
             return True
     return False
 
@@ -415,13 +398,11 @@ def is_ai_job(description):
 def is_cv_job(description):
     """
     Is it a computer vision job?
-    :param description: word set of a job description
+    :param description: lowercase string description
     :return:
     """
-    ai_keywords = [['computer', 'vision']]
-    for word_list in ai_keywords:
-        if words_exist(word_list, description):
-            return True
+    if 'computer vision' in description:
+        return True
     return False
 
 
