@@ -287,8 +287,6 @@ class SearchLinkedin:
         self.filter()
         self.find_jobs()
         self.close_session()
-        # select GeO and computer vision - AI jobs
-        select_interesting_jobs(self.out_file)
         logging.info("All done!")
 
 
@@ -317,51 +315,6 @@ def config_log(log_file, level=logging.INFO) -> None:
     console.setFormatter(logging.Formatter(str_format, "%Y-%m-%d %H:%M:%S"))
     # add the handler to the root logger
     logging.getLogger('').addHandler(console)
-
-
-def select_interesting_jobs(in_file):
-    """
-    Select interesting jobs.
-    The description contains
-    (1) any of ['remote sensing', 'satellite', 'earth', 'climate']
-    (2) any of ['deep learning', 'pytorch', 'tensorflow']
-    (3) 'intern' not in title;
-    :return:
-    """
-    # title, location, company, description
-    df = pd.read_csv(in_file)
-    logging.info(f"The total number of job entries: {df.shape[0]}")
-    # 'Link', 'Title', 'Company', 'Location', 'Description'
-    geoai_inds = []
-    cvai_inds = []
-
-    for i in range(df.shape[0]):
-        row = df.iloc[i]
-        link, title, company, location = row['Link'], row['Title'], row['Company'], row['Location']
-        logging.info(f"{i+1}/{df.shape[0]}, {link}, {title}, {company}, {location}")
-
-        # description = set(re.split(r'[,\s;:.*]+', row['Description'].lower()))
-        description = row['Description'].lower()
-        if is_intern_job(row['Title'].lower()) or require_us_citizenship(description):
-            continue
-        is_ai = is_ai_job(description)
-        is_geo = is_geo_job(description)
-        is_cv = is_cv_job(description)
-
-        if is_ai and is_geo:
-            geoai_inds.append(i)
-        if is_ai and is_cv:
-            cvai_inds.append(i)
-
-    logging.info(f"Number of GeoAI jobs: {len(geoai_inds)}")
-    logging.info(f"Number of computer vision AI jobs: {len(cvai_inds)}")
-    if len(geoai_inds):
-        out_file = in_file.replace('.csv', '') + '_geoai.csv'
-        df.loc[geoai_inds].to_csv(out_file, index=True)
-    if len(cvai_inds):
-        out_file = in_file.replace('.csv', '') + '_cvai.csv'
-        df.loc[cvai_inds].to_csv(out_file, index=True)
-    logging.info("Done!")
 
 
 def is_intern_job(title):
@@ -413,7 +366,58 @@ def is_cv_job(description):
     return False
 
 
+def select_jobs(file_list):
+    """
+    Select geo_ai and cv_ai jobs from the file list
+    :param file_list: a list of output files.
+    :return:
+    """
+    # There are usually overlaps between SDS and MLE jobs. Merge the two and remove redundancies.
+    geoai_links = set()
+    cvai_links = set()
+
+    def select_geo_cv_jobs(in_file):
+        """ Select geo_ai and cv_ai jobs """
+        df = pd.read_csv(in_file)
+        logging.info(f"{df.shape[0]} job entries in {in_file}.")
+        geoai_inds = []
+        cvai_inds = []
+        for i in range(df.shape[0]):
+            row = df.iloc[i]
+            link, title, company, location = row['Link'], row['Title'], row['Company'], row['Location']
+            logging.info(f"{i + 1}/{df.shape[0]}, {link}, {title}, {company}, {location}")
+            description = row['Description'].lower()
+            if is_intern_job(row['Title'].lower()) or require_us_citizenship(description):
+                continue
+            is_ai = is_ai_job(description)
+            is_geo = is_geo_job(description)
+            is_cv = is_cv_job(description)
+
+            if is_ai and is_geo and (link not in geoai_links):
+                geoai_inds.append(i)
+                geoai_links.add(link)
+            if is_ai and is_cv and (link not in cvai_links):
+                cvai_inds.append(i)
+                cvai_links.add(link)
+        return df, geoai_inds, cvai_inds
+
+    geoai_dfs, cvai_dfs = [], []
+    for in_file in file_list:
+        df, geoai_inds, cvai_inds = select_geo_cv_jobs(in_file)
+        geoai_dfs.append(df.loc[geoai_inds])
+        cvai_dfs.append(df.loc[cvai_inds])
+        logging.info(f"The number GeoAI job entries: {len(geoai_inds)}.")
+        logging.info(f"The number CV_AI job entries: {len(cvai_inds)}.")
+
+    geoai_file = path.join(path.dirname(file_list[-1]), path.basename(file_list[-1]).split("_")[0] + '_all_geoai.csv')
+    pd.concat(geoai_dfs).to_csv(geoai_file, index=True)
+    cvai_file = path.join(path.dirname(file_list[-1]), path.basename(file_list[-1]).split("_")[0] + '_all_cvai.csv')
+    pd.concat(cvai_dfs).to_csv(cvai_file, index=True)
+    logging.info("Done!")
+
+
 if __name__ == '__main__':
+
     # configure a log file
     time_str = datetime.now().strftime("%Y%m%dH%H")
     config_log(path.join('data/logs', time_str + '.log'))
@@ -421,11 +425,15 @@ if __name__ == '__main__':
     # search MLE jobs in the US. Default filter is "Past 24 hours".
     keywords = "Senior Data Scientist"
     location = "United States"
-    bot = SearchLinkedin(keywords, location, time_str)
-    bot.run()
+    bot_sds = SearchLinkedin(keywords, location, time_str)
+    bot_sds.run()
 
     # search MLE jobs in the US. Default filter is "Past 24 hours".
     keywords = "Machine Learning Engineer"
     location = "United States"
-    bot = SearchLinkedin(keywords, location, time_str)
-    bot.run()
+    bot_mle = SearchLinkedin(keywords, location, time_str)
+    bot_mle.run()
+
+    logging.info("Select interesting jobs form the search list.")
+    select_jobs([bot_sds.out_file, bot_mle.out_file])
+
