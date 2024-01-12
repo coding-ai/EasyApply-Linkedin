@@ -342,7 +342,7 @@ def select_interesting_jobs(in_file):
 
         # description = set(re.split(r'[,\s;:.*]+', row['Description'].lower()))
         description = row['Description'].lower()
-        if is_intern_job(row['Title'].lower()):
+        if is_intern_job(row['Title'].lower()) or require_us_citizenship(description):
             continue
         is_ai = is_ai_job(description)
         is_geo = is_geo_job(description)
@@ -367,6 +367,13 @@ def select_interesting_jobs(in_file):
 def is_intern_job(title):
     """ Is a job an intern job? """
     return True if 'intern' in title else False
+
+
+def require_us_citizenship(description):
+    """ Is US Citizenship required"""
+    if 'u.s. citizen' in description or 'us citizen' in description:
+        return True
+    return False
 
 
 def is_geo_job(description):
