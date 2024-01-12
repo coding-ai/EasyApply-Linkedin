@@ -416,7 +416,7 @@ def is_cv_job(description):
 if __name__ == '__main__':
     # configure a log file
     time_str = datetime.now().strftime("%Y%m%dH%H")
-    config_log(path.join('data', time_str + '.log'))
+    config_log(path.join('data/logs', time_str + '.log'))
 
     # search MLE jobs in the US. Default filter is "Past 24 hours".
     keywords = "Senior Data Scientist"
