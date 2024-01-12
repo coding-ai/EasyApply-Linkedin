@@ -83,7 +83,7 @@ class SearchLinkedin:
         login_pass.send_keys(Keys.RETURN)
         time.sleep(randint(2, 4))
     
-    def job_search(self):
+    def search_jobs(self):
         """This function goes to the 'Jobs' section a looks for all the jobs that matches the keywords and location"""
 
         # go to Jobs
@@ -231,8 +231,8 @@ class SearchLinkedin:
                 logging.error(str(e))
         return data
 
-    def find_jobs(self):
-        """ Find all jobs and save the jobs to a table file"""
+    def scrape_jobs(self):
+        """ Scrape/Crawl all jobs and save the jobs to a table file"""
         # Collect all jobs for each page
 
         page_num = 1
@@ -283,9 +283,9 @@ class SearchLinkedin:
         logging.info("Start...")
         self.init_webdriver()
         self.login_linkedin()
-        self.job_search()
+        self.search_jobs()
         self.filter()
-        self.find_jobs()
+        self.scrape_jobs()
         self.close_session()
         logging.info("All done!")
 
