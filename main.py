@@ -406,13 +406,15 @@ def select_jobs(file_list):
         df, geoai_inds, cvai_inds = select_geo_cv_jobs(in_file)
         geoai_dfs.append(df.loc[geoai_inds])
         cvai_dfs.append(df.loc[cvai_inds])
-        logging.info(f"The number GeoAI job entries: {len(geoai_inds)}.")
-        logging.info(f"The number CV_AI job entries: {len(cvai_inds)}.")
+    geoai_df = pd.concat(geoai_dfs)
+    cvai_df = pd.concat(cvai_dfs)
+    logging.info(f"The number GeoAI job entries: {geoai_df.shape[0]}.")
+    logging.info(f"The number CV_AI job entries: {cvai_df.shape[0]}.")
 
     geoai_file = path.join(path.dirname(file_list[-1]), path.basename(file_list[-1]).split("_")[0] + '_all_geoai.csv')
-    pd.concat(geoai_dfs).to_csv(geoai_file, index=True)
+    geoai_df.to_csv(geoai_file, index=True)
     cvai_file = path.join(path.dirname(file_list[-1]), path.basename(file_list[-1]).split("_")[0] + '_all_cvai.csv')
-    pd.concat(cvai_dfs).to_csv(cvai_file, index=True)
+    cvai_df.to_csv(cvai_file, index=True)
     logging.info("Done!")
 
 
