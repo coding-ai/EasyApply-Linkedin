@@ -92,8 +92,8 @@ class SearchLinkedin:
         jobs_link.click()
         time.sleep(randint(3, 6))
 
-        tries = 1
-        while tries < 10:
+        tries, max_tries = 1, 5
+        while tries < max_tries:
             try:
                 # search based on keywords and location and hit enter
                 if tries > 1:
@@ -127,8 +127,8 @@ class SearchLinkedin:
         """This function filters all the job results by 'Date Posted' = Past 24 hours """
 
         logging.info("Select jobs posted in the past 24 hours")
-        tries = 1
-        while tries < 10:
+        tries, max_tries = 1, 5
+        while tries < max_tries:
             try:
                 date_posted_button = self.driver.find_element(By.XPATH, '//button[starts-with(@aria-label, "Date posted filter.")][@type="button"]')
                 date_posted_button.click()
@@ -241,7 +241,7 @@ class SearchLinkedin:
             try:
                 page_button = self.driver.find_element(By.XPATH, f'//button[@aria-label="Page {page_num}"]')
             except Exception as e:
-                logging.info("Unable to locate element - Page 17.")
+                logging.info(f"Unable to locate element - Page {page_num}.")
                 time.sleep(randint(1, 2))
                 break
             page_button.click()
@@ -255,8 +255,8 @@ class SearchLinkedin:
             self.save_results(data)
 
             page_num += 1
-            if page_num > 30:
-                logging.info(f"Exit as Finished {page_num} job pages. .")
+            if page_num > 40:
+                logging.info(f"Exit as finished {page_num} job pages. .")
                 break
 
     def save_results(self, data):
