@@ -424,6 +424,12 @@ if __name__ == '__main__':
     time_str = datetime.now().strftime("%Y%m%dH%H")
     config_log(path.join('data/logs', time_str + '.log'))
 
+    # search Research Scientist jobs in the US. Default filter is "Past 24 hours".
+    keywords = "Research Scientist"
+    location = "United States"
+    bot_sds = SearchLinkedin(keywords, location, time_str)
+    bot_sds.run()
+
     # search MLE jobs in the US. Default filter is "Past 24 hours".
     keywords = "Senior Data Scientist"
     location = "United States"
@@ -438,4 +444,3 @@ if __name__ == '__main__':
 
     logging.info("Select interesting jobs form the search list.")
     select_jobs([bot_sds.out_file, bot_mle.out_file])
-
