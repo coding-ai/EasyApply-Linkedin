@@ -335,7 +335,7 @@ def is_geo_job(description):
     :param description: lowercase string description
     :return:
     """
-    geo_keywords = ['remote sensing', 'satellite', 'earth observation', 'climate change']
+    geo_keywords = ['remote sensing', 'satellite', 'earth observation', 'geospatial', 'climate change']
     for keywords in geo_keywords:
         if keywords in description:
             return True
