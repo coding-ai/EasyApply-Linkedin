@@ -36,7 +36,11 @@ class SearchLinkedin:
     @property
     def out_file(self):
         """ Output data file """
-        return path.join('data', self.time_str + f'_all_{self.job_type}.csv')
+        if len(self.location.split(' ')) == 1:
+            location = self.location.lower()
+        else:
+            location = ''.join([word[0].lower() for word in self.location.split(' ')])
+        return path.join('data', self.time_str + f'_{location}_{self.job_type}.csv')
 
     @property
     def job_type(self):
@@ -411,9 +415,10 @@ def select_jobs(file_list):
     logging.info(f"The number GeoAI job entries: {geoai_df.shape[0]}.")
     logging.info(f"The number CV_AI job entries: {cvai_df.shape[0]}.")
 
-    geoai_file = path.join(path.dirname(file_list[-1]), path.basename(file_list[-1]).split("_")[0] + '_all_geoai.csv')
+    base_name = '_'.join(path.basename(file_list[-1]).split("_")[0:2])
+    geoai_file = path.join(path.dirname(file_list[-1]), base_name + '_geoai.csv')
     geoai_df.to_csv(geoai_file, index=True)
-    cvai_file = path.join(path.dirname(file_list[-1]), path.basename(file_list[-1]).split("_")[0] + '_all_cvai.csv')
+    cvai_file = path.join(path.dirname(file_list[-1]), base_name + '_cvai.csv')
     cvai_df.to_csv(cvai_file, index=True)
     logging.info("Done!")
 
@@ -427,8 +432,8 @@ if __name__ == '__main__':
     # search Research Scientist jobs in the US. Default filter is "Past 24 hours".
     keywords = "Research Scientist"
     location = "United States"
-    bot_sds = SearchLinkedin(keywords, location, time_str)
-    bot_sds.run()
+    bot_rs = SearchLinkedin(keywords, location, time_str)
+    bot_rs.run()
 
     # search MLE jobs in the US. Default filter is "Past 24 hours".
     keywords = "Senior Data Scientist"
@@ -443,4 +448,24 @@ if __name__ == '__main__':
     bot_mle.run()
 
     logging.info("Select interesting jobs form the search list.")
-    select_jobs([bot_sds.out_file, bot_mle.out_file])
+    select_jobs([bot_rs.out_file, bot_sds.out_file, bot_mle.out_file])
+
+    # search Research Scientist jobs in Canada. Default filter is "Past 24 hours".
+    keywords = "Research Scientist"
+    location = "Canada"
+    bot_rs = SearchLinkedin(keywords, location, time_str)
+    bot_rs.run()
+
+    # search MLE jobs in Canada. Default filter is "Past 24 hours".
+    keywords = "Senior Data Scientist"
+    location = "Canada"
+    bot_sds = SearchLinkedin(keywords, location, time_str)
+    bot_sds.run()
+
+    # search MLE jobs in Canada. Default filter is "Past 24 hours".
+    keywords = "Machine Learning Engineer"
+    location = "Canada"
+    bot_mle = SearchLinkedin(keywords, location, time_str)
+    bot_mle.run()
+    logging.info("Select interesting jobs form the search list.")
+    select_jobs([bot_rs.out_file, bot_sds.out_file, bot_mle.out_file])
