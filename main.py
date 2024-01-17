@@ -244,12 +244,14 @@ class SearchLinkedin:
             logging.info(f"Processing page {page_num}")
             try:
                 page_button = self.driver.find_element(By.XPATH, f'//button[@aria-label="Page {page_num}"]')
-            except Exception as e:
+                page_button.click()
+                time.sleep(randint(3, 6))
+            except Exception:
                 logging.info(f"Unable to locate element - Page {page_num}.")
                 time.sleep(randint(1, 2))
-                break
-            page_button.click()
-            time.sleep(randint(3, 6))
+                if page_num > 1:
+                    # when there is only one page of jobs, there is not a page_button element
+                    break
 
             logging.info(f"Find all job links on Page {page_num}.")
             job_links = self.find_page_jobs()
@@ -260,7 +262,7 @@ class SearchLinkedin:
 
             page_num += 1
             if page_num > 40:
-                logging.info(f"Exit as finished {page_num} job pages. .")
+                logging.info(f"Exit as finished {page_num} job pages.")
                 break
 
     def save_results(self, data):
@@ -370,6 +372,19 @@ def is_cv_job(description):
     return False
 
 
+def is_rs_job(description):
+    """
+    Is it a recommender system job?
+    :param description: lowercase string description
+    :return:
+    """
+    rs_keywords = ['recommender system', 'recommendation system']
+    for keywords in rs_keywords:
+        if keywords in description:
+            return True
+    return False
+
+
 def select_jobs(file_list):
     """
     Select geo_ai and cv_ai jobs from the file list
@@ -379,6 +394,7 @@ def select_jobs(file_list):
     # There are usually overlaps between SDS and MLE jobs. Merge the two and remove redundancies.
     geoai_links = set()
     cvai_links = set()
+    rsai_links = set()
 
     def select_geo_cv_jobs(in_file):
         """ Select geo_ai and cv_ai jobs """
@@ -386,6 +402,7 @@ def select_jobs(file_list):
         logging.info(f"{df.shape[0]} job entries in {in_file}.")
         geoai_inds = []
         cvai_inds = []
+        rsai_inds = []
         for i in range(df.shape[0]):
             row = df.iloc[i]
             link, title, company, location = row['Link'], row['Title'], row['Company'], row['Location']
@@ -396,6 +413,7 @@ def select_jobs(file_list):
             is_ai = is_ai_job(description)
             is_geo = is_geo_job(description)
             is_cv = is_cv_job(description)
+            is_rs = is_rs_job(description)
 
             if is_ai and is_geo and (link not in geoai_links):
                 geoai_inds.append(i)
@@ -403,31 +421,50 @@ def select_jobs(file_list):
             if is_ai and is_cv and (link not in cvai_links):
                 cvai_inds.append(i)
                 cvai_links.add(link)
-        return df, geoai_inds, cvai_inds
+            if is_ai and is_rs and (link not in rsai_links):
+                rsai_inds.append(i)
+                rsai_links.add(link)
+        return df, geoai_inds, cvai_inds, rsai_inds
 
-    geoai_dfs, cvai_dfs = [], []
+    geoai_dfs, cvai_dfs, rsai_dfs = [], [], []
     for in_file in file_list:
-        df, geoai_inds, cvai_inds = select_geo_cv_jobs(in_file)
+        df, geoai_inds, cvai_inds, rsai_inds = select_geo_cv_jobs(in_file)
         geoai_dfs.append(df.loc[geoai_inds])
         cvai_dfs.append(df.loc[cvai_inds])
+        rsai_dfs.append(df.loc[rsai_inds])
     geoai_df = pd.concat(geoai_dfs)
     cvai_df = pd.concat(cvai_dfs)
+    rsai_df = pd.concat(rsai_dfs)
     logging.info(f"The number GeoAI job entries: {geoai_df.shape[0]}.")
     logging.info(f"The number CV_AI job entries: {cvai_df.shape[0]}.")
+    logging.info(f"The number RS_AI job entries: {rsai_df.shape[0]}.")
 
     base_name = '_'.join(path.basename(file_list[-1]).split("_")[0:2])
     geoai_file = path.join(path.dirname(file_list[-1]), base_name + '_geoai.csv')
     geoai_df.to_csv(geoai_file, index=True)
     cvai_file = path.join(path.dirname(file_list[-1]), base_name + '_cvai.csv')
     cvai_df.to_csv(cvai_file, index=True)
+    rsai_file = path.join(path.dirname(file_list[-1]), base_name + '_rsai.csv')
+    rsai_df.to_csv(rsai_file, index=True)
     logging.info("Done!")
 
 
 if __name__ == '__main__':
-
     # configure a log file
     time_str = datetime.now().strftime("%Y%m%dH%H")
     config_log(path.join('data/logs', time_str + '.log'))
+
+    # search MLE jobs in the US. Default filter is "Past 24 hours".
+    keywords = "Senior Data Scientist"
+    location = "United States"
+    bot_sds = SearchLinkedin(keywords, location, time_str)
+    bot_sds.run()
+
+    # search MLE jobs in the US. Default filter is "Past 24 hours".
+    keywords = "Machine Learning Engineer"
+    location = "United States"
+    bot_mle = SearchLinkedin(keywords, location, time_str)
+    bot_mle.run()
 
     # search Research Scientist jobs in the US. Default filter is "Past 24 hours".
     keywords = "Research Scientist"
@@ -435,20 +472,20 @@ if __name__ == '__main__':
     bot_rs = SearchLinkedin(keywords, location, time_str)
     bot_rs.run()
 
-    # search MLE jobs in the US. Default filter is "Past 24 hours".
+    logging.info("Select interesting jobs form the search list.")
+    select_jobs([bot_sds.out_file, bot_mle.out_file, bot_rs.out_file])
+
+    # search MLE jobs in Canada. Default filter is "Past 24 hours".
     keywords = "Senior Data Scientist"
-    location = "United States"
+    location = "Canada"
     bot_sds = SearchLinkedin(keywords, location, time_str)
     bot_sds.run()
 
-    # search MLE jobs in the US. Default filter is "Past 24 hours".
+    # search MLE jobs in Canada. Default filter is "Past 24 hours".
     keywords = "Machine Learning Engineer"
-    location = "United States"
+    location = "Canada"
     bot_mle = SearchLinkedin(keywords, location, time_str)
     bot_mle.run()
-
-    logging.info("Select interesting jobs form the search list.")
-    select_jobs([bot_rs.out_file, bot_sds.out_file, bot_mle.out_file])
 
     # search Research Scientist jobs in Canada. Default filter is "Past 24 hours".
     keywords = "Research Scientist"
@@ -456,16 +493,5 @@ if __name__ == '__main__':
     bot_rs = SearchLinkedin(keywords, location, time_str)
     bot_rs.run()
 
-    # search MLE jobs in Canada. Default filter is "Past 24 hours".
-    keywords = "Senior Data Scientist"
-    location = "Canada"
-    bot_sds = SearchLinkedin(keywords, location, time_str)
-    bot_sds.run()
-
-    # search MLE jobs in Canada. Default filter is "Past 24 hours".
-    keywords = "Machine Learning Engineer"
-    location = "Canada"
-    bot_mle = SearchLinkedin(keywords, location, time_str)
-    bot_mle.run()
     logging.info("Select interesting jobs form the search list.")
-    select_jobs([bot_rs.out_file, bot_sds.out_file, bot_mle.out_file])
+    select_jobs([bot_sds.out_file, bot_mle.out_file, bot_rs.out_file])
