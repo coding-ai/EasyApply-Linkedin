@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import json
 import logging
+import os
 import time
 from collections import OrderedDict, deque
 from datetime import datetime
@@ -446,6 +447,10 @@ def select_jobs(file_list):
     cvai_df.to_csv(cvai_file, index=True)
     rsai_file = path.join(path.dirname(file_list[-1]), base_name + '_rsai.csv')
     rsai_df.to_csv(rsai_file, index=True)
+
+    # delete the files
+    for in_file in file_list:
+        os.remove(in_file)
     logging.info("Done!")
 
 
