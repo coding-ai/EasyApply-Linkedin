@@ -330,8 +330,9 @@ def is_intern_job(title):
 
 
 def require_us_citizenship(description):
-    """ Is US Citizenship required"""
-    citizen_keywords = ['u.s. citizen', 'us citizen', 'United States Citizen']
+    """ Is US Citizenship required """
+    # description is all lowercase.
+    citizen_keywords = ['u.s. citizen', 'us citizen', 'united states citizen']
     for keywords in citizen_keywords:
         if keywords in description:
             return True
