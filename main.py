@@ -331,8 +331,10 @@ def is_intern_job(title):
 
 def require_us_citizenship(description):
     """ Is US Citizenship required"""
-    if 'u.s. citizen' in description or 'us citizen' in description:
-        return True
+    citizen_keywords = ['u.s. citizen', 'us citizen', 'United States Citizen']
+    for keywords in citizen_keywords:
+        if keywords in description:
+            return True
     return False
 
 
