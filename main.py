@@ -254,12 +254,19 @@ class SearchLinkedin:
                     # when there is only one page of jobs, there is not a page_button element
                     break
 
-            logging.info(f"Find all job links on Page {page_num}.")
-            job_links = self.find_page_jobs()
-
-            logging.info("Extract job title, company, location and description.")
-            data = self.extract_data(job_links)
-            self.save_results(data)
+            # find_page_jobs may crash somehow, retry it for at most 5 times.
+            tries, max_tries = 1, 5
+            while tries < max_tries:
+                try:
+                    logging.info(f"Find all job links on Page {page_num}.")
+                    job_links = self.find_page_jobs()
+                    logging.info("Extract job title, company, location and description.")
+                    data = self.extract_data(job_links)
+                    self.save_results(data)
+                    break
+                except Exception as e:
+                    logging.error(str(e))
+                    time.sleep(randint(3, 6))
 
             page_num += 1
             if page_num > 40:
@@ -489,7 +496,7 @@ if __name__ == '__main__':
     config_log(path.join('data/logs', time_str + '.log'))
 
     job_titles = ["Machine Learning Engineer", "Senior Data Scientist", "Research Scientist"]
-    locations = ["United States"] #, "Canada"]
+    locations = ["United States", "Canada"]
     for location in locations:
         out_files = []
         for job_title in job_titles:
