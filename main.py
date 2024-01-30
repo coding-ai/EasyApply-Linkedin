@@ -403,11 +403,11 @@ def is_auto_job(description):
     :return: 
     """
     cnt = 0
-    for keyword in ['autonomous', 'lidar', 'radar', 'calibration', 'localization', 'mapping']:
+    for keyword in ['autonomous driving', 'self-driving', 'perception', 'lidar', 'radar', 'calibration', 'mapping']:
         if keyword in description:
             cnt += 1
-    # if the description contains 3+ of the keywords, it's considered as a autonomous driving job
-    return cnt >= 3
+    # if the description contains 2+ of the keywords, it's considered as an autonomous driving job
+    return cnt >= 2
 
 
 def select_jobs(file_list):
