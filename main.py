@@ -91,18 +91,19 @@ class SearchLinkedin:
     def search_jobs(self):
         """This function goes to the 'Jobs' section a looks for all the jobs that matches the keywords and location"""
 
-        # go to Jobs
-        logging.info("Search jobs by title and location.")
-        jobs_link = self.driver.find_element(By.LINK_TEXT, 'Jobs')
-        jobs_link.click()
-        time.sleep(randint(3, 6))
-
         tries, max_tries = 1, 5
         while tries < max_tries:
             try:
                 # search based on keywords and location and hit enter
                 if tries > 1:
                     logging.info(f"Number of trials for searching jobs: {tries}. ")
+
+                # go to Jobs
+                logging.info("Search jobs by title and location.")
+                jobs_link = self.driver.find_element(By.LINK_TEXT, 'Jobs')
+                jobs_link.click()
+                time.sleep(randint(3, 6))
+
                 logging.info(f"Search {self.keywords} at {self.location}")
                 search_keywords = self.driver.find_element(By.XPATH, '//input[starts-with(@id, "jobs-search-box-keyword-id-ember")]')
                 search_keywords.clear()
@@ -475,14 +476,18 @@ def select_jobs(file_list):
     logging.info(f"The number AutoAI job entries: {auto_df.shape[0]}.")
 
     base_name = '_'.join(path.basename(file_list[-1]).split("_")[0:2])
-    geoai_file = path.join(path.dirname(file_list[-1]), base_name + '_geoai.csv')
-    geoai_df.to_csv(geoai_file, index=True)
-    cvai_file = path.join(path.dirname(file_list[-1]), base_name + '_cvai.csv')
-    cvai_df.to_csv(cvai_file, index=True)
-    rsai_file = path.join(path.dirname(file_list[-1]), base_name + '_rsai.csv')
-    rsai_df.to_csv(rsai_file, index=True)
-    auto_file = path.join(path.dirname(file_list[-1]), base_name + '_autoai.csv')
-    auto_df.to_csv(auto_file, index=True)
+    if geoai_df.shape[0] > 0:
+        geoai_file = path.join(path.dirname(file_list[-1]), base_name + '_geoai.csv')
+        geoai_df.to_csv(geoai_file, index=True)
+    if cvai_df.shape[0] > 0:
+        cvai_file = path.join(path.dirname(file_list[-1]), base_name + '_cvai.csv')
+        cvai_df.to_csv(cvai_file, index=True)
+    if rsai_df.shape[0] > 0:
+        rsai_file = path.join(path.dirname(file_list[-1]), base_name + '_rsai.csv')
+        rsai_df.to_csv(rsai_file, index=True)
+    if auto_df.shape[0] > 0:
+        auto_file = path.join(path.dirname(file_list[-1]), base_name + '_autoai.csv')
+        auto_df.to_csv(auto_file, index=True)
 
     # delete the files
     for in_file in file_list:
