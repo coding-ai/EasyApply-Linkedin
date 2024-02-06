@@ -353,11 +353,17 @@ def is_geo_job(description):
     :param description: lowercase string description
     :return:
     """
-    geo_keywords = ['remote sensing', 'satellite', 'earth observation', 'geospatial', 'climate change']
+    # a geo job should contain any of the following keywords
+    geo_keywords = ['remote sensing', 'earth observation']
     for keywords in geo_keywords:
         if keywords in description:
             return True
-    return False
+    # a job description contains 2+ of the following keywords, it's a geo job
+    cnt = 0
+    for keyword in ['satellite', 'geospatial', 'image', 'climate change']:
+        if keyword in description:
+            cnt += 1
+    return cnt >= 2
 
 
 def is_ai_job(description):
