@@ -57,7 +57,7 @@ class SearchJobs:
             self.driver = webdriver.Chrome(self.driver_path)
         else:
             self.driver = webdriver.Chrome()
-        self.driver.implicitly_wait(10)  # seconds
+        self.driver.implicitly_wait(20)  # seconds
         time.sleep(0.5)
         self.driver.maximize_window()
         time.sleep(0.5)
