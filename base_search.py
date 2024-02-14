@@ -90,76 +90,11 @@ class SearchJobs:
         :param job_links:
         :return:
         """
-        # Extract relevant information from each job posting and store it in a list of dictionaries
-        data = {'Link': [], 'Title': [], 'Company': [], 'Location': [], 'Description': []}
-        for i, (link, job_element) in enumerate(job_links.items()):
-            logging.info(f"Scrape link {i + 1} / {len(job_links)}: {link}")
-            job_element.click()
-            time.sleep(randint(1, 3))
-            soup = BeautifulSoup(self.driver.page_source, 'html.parser')
-            time.sleep(randint(1, 2) * 0.5)
-
-            try:
-                job_title = soup.find('span', {'class': 'job-details-jobs-unified-top-card__job-title-link'}).get_text(
-                    strip=True).strip()
-                details = soup.find('div', {
-                    'class': 'job-details-jobs-unified-top-card__primary-description-without-tagline'}).get_text().strip()
-                company_name, location = details.split('·')[:2]
-
-                job_desc = soup.find('div', class_='jobs-description-content__text')
-                if job_desc:
-                    description = job_desc.get_text(strip=True)
-                    n_chars = len("About the job")
-                    if len(description) > n_chars and description[:n_chars] == "About the job":
-                        description = description[n_chars:]
-                else:
-                    description = "Job description not found."
-
-                data['Link'].append(link)
-                data['Title'].append(job_title)
-                data['Company'].append(company_name)
-                data['Location'].append(location)
-                data['Description'].append(description)
-            except Exception as e:
-                logging.error(str(e))
-        return data
+        pass
 
     def scrape_jobs(self):
         """ Scrape/Crawl all jobs and save the jobs to a table file"""
-        # Collect all jobs for each page
-
-        page_num = 1
-        while True:
-            logging.info(f"Processing page {page_num}")
-            try:
-                page_button = self.driver.find_element(By.XPATH, f'//button[@aria-label="Page {page_num}"]')
-                page_button.click()
-                time.sleep(randint(3, 6))
-            except Exception:
-                logging.info(f"Unable to locate element - Page {page_num}.")
-                time.sleep(randint(1, 2))
-                if page_num > 1:
-                    # when there is only one page of jobs, there is not a page_button element
-                    break
-
-            # find_page_jobs may crash somehow, retry it for at most 5 times.
-            tries, max_tries = 1, 5
-            while tries < max_tries:
-                try:
-                    logging.info(f"Find all job links on Page {page_num}.")
-                    job_links = self.find_page_jobs()
-                    logging.info("Extract job title, company, location and description.")
-                    data = self.extract_data(job_links)
-                    self.save_results(data)
-                    break
-                except Exception as e:
-                    logging.error(str(e))
-                    time.sleep(randint(3, 6))
-
-            page_num += 1
-            if page_num > 40:
-                logging.info(f"Exit as finished {page_num} job pages.")
-                break
+        pass
 
     def save_results(self, data):
         """
