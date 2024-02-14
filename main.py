@@ -200,8 +200,8 @@ def select_jobs(file_list):
         auto_df.to_csv(auto_file, index=True)
 
     # delete the files
-    for in_file in file_list:
-        os.remove(in_file)
+    # for in_file in file_list:
+    #     os.remove(in_file)
     logging.info("Done!")
 
 
