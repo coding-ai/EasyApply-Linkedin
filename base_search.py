@@ -25,8 +25,8 @@ class SearchJobs:
         :param time_str: use a time string to name output files and log files
         :param driver_path: web driver path. No need to specify the driver_path if it is added to the system env.
         """
-        self.keywords = keywords
-        self.location = location
+        self.keywords = keywords.strip()
+        self.location = location.strip()
         self.time_str = time_str
 
         self.email = None
@@ -37,14 +37,19 @@ class SearchJobs:
     @property
     def out_file(self):
         """ Output data file """
-        if len(self.location.split(' ')) == 1:
-            location = self.location.lower()
-        else:
+        if ',' in self.location:
+            # use the first word
+            location = self.location.lower().split(',')[0]  # use the first word
+        elif ' ' in self.location:
+            # use the first letter of each word
             location = ''.join([word[0].lower() for word in self.location.split(' ')])
-        return path.join('data', self.time_str + f'_{location}_{self.job_type}.csv')
+        else:
+            location = self.location.lower()
+        platform = self.__class__.__name__.lower().replace('search', '')
+        return path.join('data', self.time_str + f'_{platform}_{location}_{self.job_abbr}.csv')
 
     @property
-    def job_type(self):
+    def job_abbr(self):
         """ first letter of each keywords"""
         return ''.join([word[0].lower() for word in self.keywords.split(' ')])
 
@@ -57,7 +62,7 @@ class SearchJobs:
             self.driver = webdriver.Chrome(self.driver_path)
         else:
             self.driver = webdriver.Chrome()
-        self.driver.implicitly_wait(20)  # seconds
+        self.driver.implicitly_wait(10)  # seconds
         time.sleep(0.5)
         self.driver.maximize_window()
         time.sleep(0.5)
@@ -117,7 +122,14 @@ class SearchJobs:
 
     def run(self):
         """ Search jobs and save results """
-        pass
+        logging.info("Start...")
+        self.init_webdriver()
+        self.login()
+        self.search_jobs()
+        self.filter()
+        self.scrape_jobs()
+        self.close_session()
+        logging.info("Session closed!")
 
 
 def config_log(log_file, level=logging.INFO) -> None:

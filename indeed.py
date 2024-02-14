@@ -1,20 +1,12 @@
 #!/usr/bin/env python
-import json
 import logging
-import os
 import time
 from collections import OrderedDict, deque
-from datetime import datetime
-from os import path, makedirs
 from random import randint
-
-import pandas as pd
-from bs4 import BeautifulSoup
-from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
-from base_search import SearchJobs, config_log
+
+from base_search import SearchJobs
 
 
 class SearchIndeed(SearchJobs):
@@ -107,10 +99,9 @@ class SearchIndeed(SearchJobs):
             return job_element.get_attribute('href').split('&')[0]
 
         result_jobs = OrderedDict()  # all jobs: {link: element}
-        link_elements = self.driver.find_elements(By.XPATH, "//a")
+        link_elements = self.driver.find_elements(By.XPATH, "//h2/a")
         q_elements = deque([a for a in link_elements if is_job_link(a)])
         q_links = deque([get_href_link(a) for a in q_elements])
-        data = {'Link': [], 'Title': [], 'Company': [], 'Location': [], 'Description': []}
         while len(q_elements):
             sz = len(q_elements)
             for i in range(sz):
@@ -118,21 +109,12 @@ class SearchIndeed(SearchJobs):
                 job_link = q_links.popleft()
                 if job_link in result_jobs:
                     continue
-
-                # collect data from the current job
-                job_title, company_name, location, description = self.retrieve_data(job_element)
-                data['Link'].append(job_link)
-                data['Title'].append(job_title)
-                data['Company'].append(company_name)
-                data['Location'].append(location)
-                data['Description'].append(description)
-
                 # add the link to the results
                 result_jobs[job_link] = job_element
 
                 # scroll to this job element and find all link elements
                 self.driver.execute_script("arguments[0].scrollIntoView();", job_element)
-                time.sleep(1)
+                time.sleep(randint(1, 3) * 0.1)
                 new_link_elements = self.driver.find_elements(By.XPATH, "//a")
 
                 # add new jobs which are not in the queue or in the result to the queue
@@ -145,57 +127,40 @@ class SearchIndeed(SearchJobs):
                         q_links.append(new_job_link)
         return result_jobs
 
-    def retrieve_data(self, job_element):
-        job_element.click()
-        time.sleep(randint(1, 3))
-        title_element = self.driver.find_element(By.XPATH, "//span[contains(normalize-space(), ' - job post')]")
-        job_title = title_element.text.strip().replace('\n- job post', '')
+    def extract_data(self, job_links):
+        """
+        Extract information from a job link
+        :param job_links:
+        :return:
+        """
+        # Extract relevant information from each job posting and store it in a list of dictionaries
+        data = {'Link': [], 'Title': [], 'Company': [], 'Location': [], 'Description': []}
+        for i, (link, job_element) in enumerate(job_links.items()):
+            logging.info(f"Scrape link {i + 1} / {len(job_links)}: {link}")
+            try:
+                # Another element may cover this element you are trying to click. Do not use job_element.click()
+                self.driver.execute_script("arguments[0].click();", job_element)
+                time.sleep(randint(1, 3))
+                title_element = self.driver.find_element(By.XPATH, "//span[contains(normalize-space(), ' - job post')]")
+                job_title = title_element.text.strip().replace('\n- job post', '')
 
-        company_element = self.driver.find_element(By.XPATH,
-                                                   '//a[contains(@aria-label, "(opens in a new tab)")][starts-with(@href, "https://www.indeed.com/cmp")]')
-        company_name = company_element.text.strip()
+                company_element = self.driver.find_element(By.XPATH, '//a[contains(@aria-label, "(opens in a new tab)")][starts-with(@href, "https://www.indeed.com/cmp")]')
+                company_name = company_element.text.strip()
 
-        jd_element = self.driver.find_element(By.XPATH, '//div[@id="jobDescriptionText"]')
-        description = jd_element.text.strip()
+                jd_element = self.driver.find_element(By.XPATH, '//div[@id="jobDescriptionText"]')
+                description = jd_element.text.strip()
 
-        location_element = self.driver.find_element(By.XPATH, '//div[contains(@data-testid, "companyLocation")]')
-        location = location_element.text.strip()
-        return job_title, company_name, location, description
+                location_element = self.driver.find_element(By.XPATH, '//div[contains(@data-testid, "companyLocation")]')
+                location = location_element.text.strip()
 
-
-    # def extract_data(self, job_links):
-    #     """
-    #     Extract information from a job link
-    #     :param job_links:
-    #     :return:
-    #     """
-    #     # Extract relevant information from each job posting and store it in a list of dictionaries
-    #     data = {'Link': [], 'Title': [], 'Company': [], 'Location': [], 'Description': []}
-    #     for i, (link, job_element) in enumerate(job_links.items()):
-    #         logging.info(f"Scrape link {i + 1} / {len(job_links)}: {link}")
-    #         job_element.click()
-    #         time.sleep(randint(1, 3))
-    #         try:
-    #             title_element = self.driver.find_element(By.XPATH, "//span[contains(normalize-space(), ' - job post')]")
-    #             job_title = title_element.text.strip().replace('\n- job post', '')
-    #
-    #             company_element = self.driver.find_element(By.XPATH, '//a[contains(@aria-label, "(opens in a new tab)")][starts-with(@href, "https://www.indeed.com/cmp")]')
-    #             company_name = company_element.text.strip()
-    #
-    #             jd_element = self.driver.find_element(By.XPATH, '//div[@id="jobDescriptionText"]')
-    #             description = jd_element.text.strip()
-    #
-    #             location_element = self.driver.find_element(By.XPATH, '//div[contains(@data-testid, "companyLocation")]')
-    #             location = location_element.text.strip()
-    #
-    #             data['Link'].append(link)
-    #             data['Title'].append(job_title)
-    #             data['Company'].append(company_name)
-    #             data['Location'].append(location)
-    #             data['Description'].append(description)
-    #         except Exception as e:
-    #             logging.error(str(e))
-    #     return data
+                data['Link'].append(link)
+                data['Title'].append(job_title)
+                data['Company'].append(company_name)
+                data['Location'].append(location)
+                data['Description'].append(description)
+            except Exception as e:
+                logging.error(str(e))
+        return data
 
     def scrape_jobs(self):
         """ Scrape/Crawl all jobs and save the jobs to a table file"""
@@ -207,7 +172,8 @@ class SearchIndeed(SearchJobs):
             if page_num > 1:
                 try:
                     page_button = self.driver.find_element(By.XPATH, f'//a[@data-testid="pagination-page-{page_num}"]')
-                    page_button.click()
+                    # page_button.click()
+                    self.driver.execute_script("arguments[0].click();", page_button)
                     time.sleep(randint(3, 6))
                 except Exception:
                     logging.info(f"Unable to locate element - Page {page_num}.")
@@ -221,9 +187,9 @@ class SearchIndeed(SearchJobs):
             while tries < max_tries:
                 try:
                     logging.info(f"Find all job links on Page {page_num}.")
-                    data = self.find_page_jobs()
-                    # logging.info("Extract job title, company, location and description.")
-                    # data = self.extract_data(job_links)
+                    job_links = self.find_page_jobs()
+                    logging.info("Extract job title, company, location and description.")
+                    data = self.extract_data(job_links)
                     self.save_results(data)
                     break
                 except Exception as e:
@@ -234,30 +200,3 @@ class SearchIndeed(SearchJobs):
             if page_num > 40:
                 logging.info(f"Exit as finished {page_num} job pages.")
                 break
-
-    def run(self):
-        """ Search jobs and save results """
-        logging.info("Start...")
-        self.init_webdriver()
-        self.login()
-        self.search_jobs()
-        self.filter()
-        self.scrape_jobs()
-        self.close_session()
-        logging.info("All done!")
-
-
-if __name__ == '__main__':
-    time_str = datetime.now().strftime("%Y%m%dH%H")
-    config_log(path.join('data/logs', time_str + '_indeed.log'))
-
-    job_titles = ["Machine Learning Engineer", "Senior Data Scientist"]
-    locations = ["Seattle, WA"]
-    for location in locations:
-        out_files = []
-        for job_title in job_titles:
-            bot = SearchIndeed(job_title, location, time_str)
-            bot.run()
-            out_files.append(bot.out_file)
-        logging.info("Select interesting jobs form the search list.")
-
