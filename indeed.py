@@ -112,9 +112,11 @@ class SearchIndeed(SearchJobs):
                 # add the link to the results
                 result_jobs[job_link] = job_element
 
-                # scroll to this job element and find all link elements
+                # scroll to this job element and find all link elements. Scroll one time for every 3 elements.
+                if i % 3 != 2:
+                    continue
                 self.driver.execute_script("arguments[0].scrollIntoView();", job_element)
-                time.sleep(randint(1, 3) * 0.2)
+                time.sleep(randint(1, 3))
                 new_link_elements = self.driver.find_elements(By.XPATH, "//a")
 
                 # add new jobs which are not in the queue or in the result to the queue
@@ -170,16 +172,17 @@ class SearchIndeed(SearchJobs):
         while True:
             logging.info(f"Processing page {page_num}")
             if page_num > 1:
-                try:
-                    page_button = self.driver.find_element(By.XPATH, f'//a[@data-testid="pagination-page-{page_num}"]')
-                    self.driver.execute_script("arguments[0].click();", page_button)  # page_button.click()
-                    time.sleep(randint(3, 6))
-                except Exception:
-                    logging.info(f"Unable to locate element - Page {page_num}.")
-                    time.sleep(randint(1, 2))
-                    if page_num > 1:
-                        # when there is only one page of jobs, there is not a page_button element
+                tries, max_tries = 1, 5
+                while tries < max_tries:
+                    try:
+                        page_button = self.driver.find_element(By.XPATH, f'//a[@data-testid="pagination-page-{page_num}"]')
+                        self.driver.execute_script("arguments[0].click();", page_button)  # page_button.click()
+                        time.sleep(randint(3, 6))
                         break
+                    except Exception:
+                        logging.info(f"Unable to locate element - Page {page_num}.")
+                        time.sleep(randint(1, 2))
+                    tries += 1
 
             # find_page_jobs may crash somehow, retry it for at most 5 times.
             tries, max_tries = 1, 5
