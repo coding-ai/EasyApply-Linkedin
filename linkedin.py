@@ -22,19 +22,12 @@ class SearchLinkedin(SearchJobs):
         :param time_str: use a time string to name output files and log files
         :param driver_path: web driver path. No need to specify the driver_path if it is added to the system env.
         """
-        self.keywords = keywords
-        self.location = location
-        self.time_str = time_str
-
-        self.email = None
-        self.password = None
-        self.driver_path = driver_path
-        self.driver = None
+        super(SearchLinkedin, self).__init__(keywords, location, time_str, driver_path=driver_path)
 
     def get_credentials(self):
         """ Load login account and password from a local file """
         logging.info(f"Load a configuration file for job search.")
-        with open('data/config.json', 'r') as config_file:
+        with open('data/linkedin_config.json', 'r') as config_file:
             data = json.load(config_file)
         self.email = data['email']
         self.password = data['password']
@@ -234,6 +227,8 @@ class SearchLinkedin(SearchJobs):
                         logging.info(f"Unable to locate element - Page {page_num}.")
                         time.sleep(randint(1, 2))
                     tries += 1
+                if tries >= max_tries:
+                    break
 
             # find_page_jobs may crash somehow, retry it for at most 5 times.
             tries, max_tries = 1, 5

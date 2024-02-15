@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import json
 import logging
 import time
 from collections import OrderedDict, deque
@@ -11,17 +12,18 @@ from base_search import SearchJobs
 
 class SearchIndeed(SearchJobs):
     """
+    Search jobs on Indeed
     """
     def __init__(self, keywords, location, time_str, driver_path=None):
         super(SearchIndeed, self).__init__(keywords, location, time_str, driver_path=driver_path)
 
+    def get_credentials(self):
+        """ Load login account and password from a local file """
+        pass
+
     def login(self):
         """This function logs into your personal Indeed profile"""
-        # Indeed doesn't require login for searching jobs.
-        # logging.info(f"Go to the Indeed search url: https://www.indeed.com/q-software-engineer-jobs.html")
-        # self.driver.get("https://www.indeed.com/q-software-engineer-jobs.html")
-        # time.sleep(randint(1, 4))
-        pass
+        logging.info(f"Indeed login always fails.")
 
     def search_jobs(self):
         tries, max_tries = 1, 5
@@ -113,10 +115,10 @@ class SearchIndeed(SearchJobs):
                 result_jobs[job_link] = job_element
 
                 # scroll to this job element and find all link elements. Scroll one time for every 3 elements.
-                if i % 3 != 2:
+                if i % 5 != 4:
                     continue
                 self.driver.execute_script("arguments[0].scrollIntoView();", job_element)
-                time.sleep(randint(1, 3))
+                time.sleep(randint(3, 6))
                 new_link_elements = self.driver.find_elements(By.XPATH, "//a")
 
                 # add new jobs which are not in the queue or in the result to the queue
@@ -142,7 +144,16 @@ class SearchIndeed(SearchJobs):
             try:
                 # Another element may cover this element you are trying to click. Do not use job_element.click()
                 self.driver.execute_script("arguments[0].click();", job_element)
-                time.sleep(randint(1, 3))
+                time.sleep(randint(3, 5))
+                # adding some random operation to avoid being detected as a robot.
+                try:
+                    if i % randint(1, 4) == 0:
+                        jd_section = self.driver.find_element(By.XPATH, "//div[@id='jobDetailsSection']")
+                        self.driver.execute_script("arguments[0].scrollIntoView();", jd_section)
+                        time.sleep(randint(1, 2))
+                except Exception:
+                    time.sleep(randint(1, 2))
+
                 title_element = self.driver.find_element(By.XPATH, "//span[contains(normalize-space(), ' - job post')]")
                 job_title = title_element.text.strip().replace('\n- job post', '')
 
@@ -183,6 +194,8 @@ class SearchIndeed(SearchJobs):
                         logging.info(f"Unable to locate element - Page {page_num}.")
                         time.sleep(randint(1, 2))
                     tries += 1
+                if tries >= max_tries:
+                    break
 
             # find_page_jobs may crash somehow, retry it for at most 5 times.
             tries, max_tries = 1, 5

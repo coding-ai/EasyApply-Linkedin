@@ -1,18 +1,9 @@
 #!/usr/bin/env python
-import json
 import logging
-import os
 import time
-from collections import OrderedDict, deque
-from datetime import datetime
 from os import path, makedirs
-from random import randint
-
 import pandas as pd
-from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 
 
 class SearchJobs:
@@ -68,12 +59,7 @@ class SearchJobs:
         time.sleep(0.5)
 
     def get_credentials(self):
-        """ Load login account and password from a local file """
-        logging.info(f"Load a configuration file for job search.")
-        with open('data/config.json', 'r') as config_file:
-            data = json.load(config_file)
-        self.email = data['email']
-        self.password = data['password']
+        pass
 
     def login(self):
         pass

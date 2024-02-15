@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import json
 import logging
 import os
 from datetime import datetime
@@ -200,8 +199,8 @@ def select_jobs(file_list):
         auto_df.to_csv(auto_file, index=True)
 
     # delete the files
-    # for in_file in file_list:
-    #     os.remove(in_file)
+    for in_file in file_list:
+        os.remove(in_file)
     logging.info("Done!")
 
 
@@ -210,19 +209,8 @@ if __name__ == '__main__':
     time_str = datetime.now().strftime("%Y%m%dH%H")
     config_log(path.join('data/logs', time_str + '.log'))
 
-    job_titles = ["Machine Learning Engineer", "Senior Data Scientist", "Research Scientist"]
+    job_titles = ["Machine Learning Engineer", "Senior Data Scientist"]  # , "Research Scientist"]
     locations = ["United States"]  # , "Canada"]
-
-    # Search jobs on Indeed
-    logging.info("Search jobs on Indeed.")
-    for location in locations:
-        out_files = []
-        for job_title in job_titles:
-            bot = SearchIndeed(job_title, location, time_str)
-            bot.run()
-            out_files.append(bot.out_file)
-        logging.info("Select interesting jobs form the search list.")
-        select_jobs(out_files)
 
     # Search jobs on LinkedIn
     logging.info("Search jobs on LinkedIn.")
@@ -234,3 +222,17 @@ if __name__ == '__main__':
             out_files.append(bot.out_file)
         logging.info("Select interesting jobs form the search list.")
         select_jobs(out_files)
+
+    # Search jobs on Indeed
+    job_titles = ["Machine Learning Engineer", "Senior Data Scientist"]
+    locations = ["Seattle, WA", "San Jose, CA", "New York, NY", "Boston, MA"]
+    logging.info("Search jobs on Indeed.")
+    for location in locations:
+        out_files = []
+        for job_title in job_titles:
+            bot = SearchIndeed(job_title, location, time_str)
+            bot.run()
+            out_files.append(bot.out_file)
+        logging.info("Select interesting jobs form the search list.")
+        select_jobs(out_files)
+
