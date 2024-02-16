@@ -144,7 +144,7 @@ class SearchIndeed(SearchJobs):
             try:
                 # Another element may cover this element you are trying to click. Do not use job_element.click()
                 self.driver.execute_script("arguments[0].click();", job_element)
-                time.sleep(randint(3, 5))
+                time.sleep(randint(3, 6))
                 # adding some random operation to avoid being detected as a robot.
                 try:
                     if i % randint(1, 4) == 0:

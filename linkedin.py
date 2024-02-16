@@ -180,7 +180,7 @@ class SearchLinkedin(SearchJobs):
         for i, (link, job_element) in enumerate(job_links.items()):
             logging.info(f"Extract data from link {i + 1} / {len(job_links)}: {link}")
             job_element.click()
-            time.sleep(randint(1, 3))
+            time.sleep(randint(3, 6))
             soup = BeautifulSoup(self.driver.page_source, 'html.parser')
 
             try:
