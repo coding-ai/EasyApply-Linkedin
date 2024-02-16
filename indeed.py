@@ -115,7 +115,7 @@ class SearchIndeed(SearchJobs):
                 result_jobs[job_link] = job_element
 
                 # scroll to this job element and find all link elements. Scroll one time for every 3 elements.
-                if i % 5 != 4:
+                if i % 3 != 4:
                     continue
                 self.driver.execute_script("arguments[0].scrollIntoView();", job_element)
                 time.sleep(randint(3, 6))
@@ -140,7 +140,7 @@ class SearchIndeed(SearchJobs):
         # Extract relevant information from each job posting and store it in a list of dictionaries
         data = {'Link': [], 'Title': [], 'Company': [], 'Location': [], 'Description': []}
         for i, (link, job_element) in enumerate(job_links.items()):
-            logging.info(f"Scrape link {i + 1} / {len(job_links)}: {link}")
+            logging.info(f"Extract data from link {i + 1} / {len(job_links)}: {link}")
             try:
                 # Another element may cover this element you are trying to click. Do not use job_element.click()
                 self.driver.execute_script("arguments[0].click();", job_element)

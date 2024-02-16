@@ -178,7 +178,7 @@ class SearchLinkedin(SearchJobs):
         # Extract relevant information from each job posting and store it in a list of dictionaries
         data = {'Link': [], 'Title': [], 'Company': [], 'Location': [], 'Description': []}
         for i, (link, job_element) in enumerate(job_links.items()):
-            logging.info(f"Scrape link {i + 1} / {len(job_links)}: {link}")
+            logging.info(f"Extract data from link {i + 1} / {len(job_links)}: {link}")
             job_element.click()
             time.sleep(randint(1, 3))
             soup = BeautifulSoup(self.driver.page_source, 'html.parser')
@@ -220,7 +220,7 @@ class SearchLinkedin(SearchJobs):
                 while tries < max_tries:
                     try:
                         page_button = self.driver.find_element(By.XPATH, f'//button[@aria-label="Page {page_num}"]')
-                        page_button.click()
+                        self.driver.execute_script("arguments[0].click();", page_button)   # page_button.click()
                         time.sleep(randint(3, 6))
                         break
                     except Exception:

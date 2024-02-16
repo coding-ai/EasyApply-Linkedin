@@ -206,7 +206,7 @@ def select_jobs(file_list):
 
 if __name__ == '__main__':
     # configure a log file
-    time_str = datetime.now().strftime("%Y%m%dH%H")
+    time_str = datetime.now().strftime("%Y%m%d")
     config_log(path.join('data/logs', time_str + '.log'))
 
     job_titles = ["Machine Learning Engineer", "Senior Data Scientist"]  # , "Research Scientist"]
