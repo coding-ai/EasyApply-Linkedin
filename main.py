@@ -184,7 +184,17 @@ def select_jobs(file_list):
     logging.info(f"The number RS_AI job entries: {rsai_df.shape[0]}.")
     logging.info(f"The number AutoAI job entries: {auto_df.shape[0]}.")
 
-    base_name = '_'.join(path.basename(file_list[-1]).split("_")[0:2])
+    # determine the output file name
+    last_seps = path.basename(file_list[-1]).split("_")  # timestr_platform_loc_title.csv
+    n_common = 4
+    for out_file in file_list[:-1]:
+        cur_seps = path.basename(out_file).split("_")
+        for i, (last_sep, cur_sep) in enumerate(zip(last_seps, cur_seps)):
+            if last_sep != cur_sep:
+                if i < n_common:
+                    n_common = i
+    base_name = '_'.join(path.basename(file_list[-1]).split("_")[0:n_common])
+
     if geoai_df.shape[0] > 0:
         geoai_file = path.join(path.dirname(file_list[-1]), base_name + '_geoai.csv')
         geoai_df.to_csv(geoai_file, index=True)
@@ -227,12 +237,12 @@ if __name__ == '__main__':
     job_titles = ["Machine Learning Engineer", "Senior Data Scientist"]
     locations = ["Seattle, WA", "San Jose, CA", "New York, NY", "Boston, MA"]
     logging.info("Search jobs on Indeed.")
+    out_files = []
     for location in locations:
-        out_files = []
         for job_title in job_titles:
             bot = SearchIndeed(job_title, location, time_str)
             bot.run()
             out_files.append(bot.out_file)
         logging.info("Select interesting jobs form the search list.")
-        select_jobs(out_files)
+    select_jobs(out_files)
 
