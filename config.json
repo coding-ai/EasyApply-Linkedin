@@ -1,7 +1,0 @@
-{
-    "email" : "your_email",
-    "password" : "your_password",
-    "keywords" : "your_keywords",
-    "location" : "your_location",
-    "driver_path" : "your_path_to_webdriver"
-}

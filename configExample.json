@@ -1,0 +1,291 @@
+{
+  "email": "example@domain.com",
+  "password": "YourSecurePassword123!",
+  "keywords": [
+      "TypeScript",
+      "Angular",
+      "React",
+      "React Native",
+      "Node",
+      "JavaScript",
+      "Frontend Engineer",
+      "Full-Stack Engineer",
+      "Backend Engineer"
+  ],
+  "keywordsToAvoid": [
+      "C++",
+      ".NET",
+      "Analyst",
+      "PHP",
+      "Python",
+      "C",
+      "Java",
+      "Go",
+      "Rust",
+      "Kotlin",
+      "Swift",
+      "Objective-C",
+      "Robotic",
+      "Data",
+      "Science",
+      "Cloud",
+      "AI",
+      "ML",
+      "DL",
+      "NLP",
+      "CV",
+      "DevOps",
+      "Solidity"
+  ],
+  "locations": [
+      "Canada",
+      "Portugal",
+      "Switzerland",
+      "Belgium",
+      "Netherlands",
+      "DACH",
+      "Benelux",
+      "European Union",
+      "European Economic Area",
+      "Germany",
+      "Spain",
+      "United States",
+      "United Kingdom"
+  ],
+  "driver_path": "/path/to/geckodriver",
+  "sortBy": "R",
+  "filters": {
+      "easy_apply": true,
+      "experience": [],
+      "jobType": [
+          "Full-time",
+          "Contract"
+      ],
+      "timePostedRange": [],
+      "workplaceType": [
+          "Remote",
+          "Hybrid"
+      ],
+      "less_than_10_applicants": false
+  },
+  "collection": "",
+  "aiContext": {
+      "user_data": {
+          "linkedin_url": "https://www.linkedin.com/in/example",
+          "github_url": "https://github.com/example",
+          "portfolio_url": "https://example.dev/",
+          "phone": "+41 76 000 00 00",
+          "phoneCountryCode": "Switzerland (+41)",
+          "phoneNationalNumber": "760000000",
+          "email": "example@domain.com",
+          "address": "Nordstrasse 70, 8006 Zurich, Switzerland",
+          "street": "Nordstrasse 70",
+          "city": "Zurich",
+          "postalCode": "8006",
+          "country": "Switzerland",
+          "currentLocation": "Zurich, Switzerland",
+          "nationality": "Spain",
+          "workPermit": "Swiss B Permit (EU/EFTA)",
+          "noticePeriodDays": 30,
+          "availability": "1 Month Notice Period"
+      },
+      "languagesSpokenByUser": {
+          "English": "Full Professional / Native (C1/C2)",
+          "Spanish": "Native (C2)",
+          "German": "Basic (A1/A2)"
+      },
+      "preferences": {
+          "workplaceType": "Remote",
+          "workplaceTypeAlternative": [
+              "Hybrid",
+              "On-site"
+          ],
+          "jobType": "Contract",
+          "jobTypeAlternative": [
+              "Full-time"
+          ],
+          "prereferredEnd": "Backend",
+          "prereferredEndAlternative": [
+              "Full-Stack",
+              "Frontend"
+          ],
+          "willingToRelocate": true,
+          "relocateTarget": "Zug, Switzerland",
+          "remoteAnywhere": true,
+          "officeLocationsOnly": ["Zurich", "Zug", "Zürich"],
+          "onsiteOnlyIn": ["Zurich", "Zug", "Zürich"]
+      },
+      "workAuthorization": {
+          "switzerland": {
+              "authorized": true,
+              "requiresSponsorship": false,
+              "permit": "Swiss B Permit (EU/EFTA)"
+          },
+          "eu": {
+              "authorized": true,
+              "requiresSponsorship": false
+          },
+          "default": {
+              "authorized": false,
+              "requiresSponsorship": true
+          }
+      },
+      "experience": [
+          {
+              "title": "Full-Stack Developer",
+              "description": "Developed an e-commerce platform using MERN stack.",
+              "date": "Jan 2021 - Present",
+              "company": "Tech Solutions",
+              "location": "Remote",
+              "skills": [
+                  "TypeScript",
+                  "React",
+                  "Node.js",
+                  "Express.js",
+                  "MongoDB"
+              ]
+          },
+          {
+              "title": "Frontend Engineer",
+              "description": "Designed and implemented user interfaces with Angular.",
+              "date": "Jun 2019 - Dec 2020",
+              "company": "Web Creators",
+              "location": "San Francisco, CA",
+              "skills": [
+                  "JavaScript",
+                  "Angular",
+                  "HTML",
+                  "CSS"
+              ]
+          }
+      ],
+      "education": [
+          {
+              "title": "Bachelor of Science - Computer Science",
+              "description": "Studied various aspects of computer science, including algorithms, data structures, and web development.",
+              "date": "Sep 2015 - Jun 2019",
+              "company": "University of Somewhere",
+              "skills": [
+                  "Algorithms",
+                  "Data Structures",
+                  "Web Development",
+                  "Machine Learning"
+              ]
+          }
+      ],
+      "projects": [
+          {
+              "name": "Project Alpha",
+              "description": "A project management tool developed using React and Node.js.",
+              "technologies": [
+                  "React",
+                  "Node.js",
+                  "Express",
+                  "MongoDB",
+                  "Docker"
+              ]
+          }
+      ],
+      "skills": [
+          "TypeScript",
+          "JavaScript",
+          "Angular",
+          "React",
+          "Node.js",
+          "Express.js",
+          "MongoDB",
+          "HTML",
+          "CSS"
+      ]
+  },
+  "aiSettings": {
+      "enabled": true,
+      "primary": "ollama",
+      "ollama": {
+          "baseUrl": "http://localhost:11434",
+          "model": "qwen2.5:3b-instruct",
+          "timeoutSeconds": 30
+      },
+      "fallback": {
+          "model": "Qwen/Qwen2.5-1.5B-Instruct",
+          "device": "auto"
+      },
+      "retrieval": {
+          "embeddingModel": "sentence-transformers/all-MiniLM-L6-v2",
+          "similarityThreshold": 0.85
+      },
+      "defaults": {
+          "salaryExpectationUsd": "90000",
+          "hourlyRateRange": "40-60",
+          "requiresSponsorship": false,
+          "willingToRelocate": true,
+          "noticePeriodDays": 30,
+          "relocateTarget": "Zug, Switzerland"
+      },
+      "style": {
+          "maxWords": 40,
+          "forbiddenPatterns": [
+              "—",
+              "Furthermore",
+              "I am excited",
+              "I am passionate"
+          ]
+      }
+  },
+  "resumes": {
+      "en": "resumes/Resume_Gabriel_Clemente.pdf",
+      "de": "resumes/Lebenslauf_Gabriel_Clemente.pdf",
+      "default": "en"
+  },
+  "indeed": {
+      "enabled": true,
+      "baseUrl": "https://ch.indeed.com",
+      "locations": [
+          "Zurich",
+          "Zug",
+          "Remote"
+      ],
+      "filters": {
+          "easyApplyOnly": true,
+          "fromage": 7,
+          "remotejob": true
+      }
+  },
+  "user_inputs": {
+      "United States": {
+          "City\nCity": "Fake City, USA",
+          "What is your gender?\nWhat is your gender?": "Prefer not to say",
+          "Do you consider yourself to be disabled as defined by the Equality Act 2010?": "No",
+          "Do you require any particular arrangements to support you in the recruitment and selection process?": "No",
+          "What is your ethnic origin?\nWhat is your ethnic origin?": "White",
+          "I Agree Terms & Conditions": true,
+          "LinkedIn": true
+      },
+      "Belgium": {
+          "What is your preferred name?": "John Doe",
+          "Do you now, or will you in the future, require visa sponsorship to work for our company in the country this role is advertised for?": "No",
+          "What are your salary expectations?": "60000",
+          "English": true,
+          "City\nCity": "Fake City, Belgium",
+          "I Agree Terms & Conditions": true,
+          "What language(s) do you speak and/or understand? What is your level?": "English, French - fluent",
+          "Are you legally authorized to work in the country of the job?": "Yes"
+      },
+      "Netherlands": {
+          "What is your current location?": "Fake City, Netherlands",
+          "City\nCity": "Fake City, Netherlands",
+          "Legal Name (if different than above)": "John Doe",
+          "How did you hear about this job?": "LinkedIn",
+          "Do you now or will you in the future require immigration sponsorship to work at Company?": "No",
+          "What are your salary expectations?": "65000",
+          "This vacancy is for an internal position and we do not contract freelancers for this position. Do you acknowledge this statement?": "Yes"
+      },
+      "Spain": {
+          "What is your level of proficiency in English?\nWhat is your level of proficiency in English?": "Native or bilingual",
+          "City\nCity": "Fake City, Spain",
+          "Indica tus expectativas salariales frente a un cambio.": "50000",
+          "Are you legally authorized to work in Spain?": "Yes",
+          "What is your salary expectation?": "50000"
+      }
+  }
+}

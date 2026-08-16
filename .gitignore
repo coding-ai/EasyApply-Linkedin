@@ -1,0 +1,20 @@
+# Ignore everything
+*
+config.json
+.cache/
+# Allow specific files
+!.gitignore
+!main.py
+!answer_engine.py
+!base_easy_apply.py
+!indeed_bot.py
+!discover_indeed_selectors.py
+!indeed_selectors.json
+!configExample.json
+!README.md
+!LICENCE
+!requirements.txt
+!e2e_tests.py
+!unit_tests.py
+!test_answer_engine.py
+!test_indeed_bot.py
